@@ -88,6 +88,10 @@ void ST7735_InitB(void);
 // Output: none
 void ST7735_InitR(enum initRFlags option);
 
+//-----------ST7735_Message-----------
+// Draws string and long value on designated screen
+void ST7735_Message(int screen,int line,char *string,long value);
+
 
 //------------ST7735_DrawPixel------------
 // Color the pixel at the given coordinates with the given color.

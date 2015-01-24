@@ -787,6 +787,43 @@ void static pushColor(uint16_t color) {
   writedata((uint8_t)color);
 }
 
+//-----------ST7735_Message--------------
+//Draws a string and long value one one of the two split screens
+void ST7735_Message(int screen,int line,char *string,long value){
+	
+	if(screen == 1 && line == 1){
+		ST7735_DrawString(0, 0, string, ST7735_RED);
+		ST7735_SetCursor(10, 0);
+		ST7735_OutUDec(value);
+	}	
+	else if(screen == 1 && line == 2){
+		ST7735_DrawString(0, 3, string, ST7735_RED);
+		ST7735_SetCursor(10, 3);
+		ST7735_OutUDec(value);
+	}
+	else if(screen == 1 && line == 3){
+		ST7735_DrawString(0, 6, string, ST7735_RED);
+		ST7735_SetCursor(10, 6);
+		ST7735_OutUDec(value);		
+	}
+	else if(screen == 2 && line == 1){
+		ST7735_DrawString(0, 9, string, ST7735_RED);
+		ST7735_SetCursor(10, 9);
+		ST7735_OutUDec(value);		
+	}
+	else if(screen == 2 && line == 2){
+		ST7735_DrawString(0, 12, string, ST7735_RED);	
+		ST7735_SetCursor(10, 12);
+		ST7735_OutUDec(value);
+	}
+	else if (screen == 2 && line == 3){
+		ST7735_DrawString(0, 15, string, ST7735_RED);	
+		ST7735_SetCursor(10, 15);
+		ST7735_OutUDec(value);
+	}
+
+}
+
 
 //------------ST7735_DrawPixel------------
 // Color the pixel at the given coordinates with the given color.
