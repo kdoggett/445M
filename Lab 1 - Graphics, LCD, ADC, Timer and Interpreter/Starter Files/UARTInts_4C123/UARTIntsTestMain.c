@@ -61,14 +61,22 @@ int main(void){
   UART_OutChar('>');
   while(1){
     UART_OutString("InString: ");
-    UART_InString(string,19);
-    UART_OutString(" OutString="); UART_OutString(string); OutCRLF();
+    UART_InString(string,19);		
+    UART_OutString(" OutString="); 
+		UART_OutString(string); 
+		OutCRLF();
 
-    UART_OutString("InUDec: ");  n=UART_InUDec();
-    UART_OutString(" OutUDec="); UART_OutUDec(n); OutCRLF();
+    UART_OutString("InUDec: ");  
+		n=UART_InUDec();		
+    UART_OutString(" OutUDec="); 
+		UART_OutUDec(n); 
+		OutCRLF();
 
-    UART_OutString("InUHex: ");  n=UART_InUHex();
-    UART_OutString(" OutUHex="); UART_OutUHex(n); OutCRLF();
+    UART_OutString("InUHex: ");  
+		n=UART_InUHex();
+    UART_OutString(" OutUHex="); 
+		UART_OutUHex(n); 
+		OutCRLF();
 
   }
 }

@@ -69,7 +69,7 @@ int main0(void){
   while(1){
   }
 } 
-int main(void){
+int mainTFTstable(void){
   PLL_Init();
   ST7735_InitR(INITR_REDTAB);
 	ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
