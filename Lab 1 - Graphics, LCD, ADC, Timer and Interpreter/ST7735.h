@@ -38,17 +38,41 @@
  For more information about my classes, my research, and my books, see
  http://users.ece.utexas.edu/~valvano/
  */
+ 
+/* Sain Smart Connections (ST7735)
 
-// Backlight (pin 10) connected to +3.3 V
-// MISO (pin 9) unconnected
-// SCK (pin 8) connected to PA2 (SSI0Clk)
-// MOSI (pin 7) connected to PA5 (SSI0Tx)
-// TFT_CS (pin 6) connected to PA3 (SSI0Fss)
-// CARD_CS (pin 5) unconnected
-// Data/Command (pin 4) connected to PA6 (GPIO)
-// RESET (pin 3) connected to PA7 (GPIO)
-// VCC (pin 2) connected to +3.3 V
-// Gnd (pin 1) connected to ground
+		Name	Pin	Board						Wire Color
+		VCC		1		+3.3V						rail
+		GND		2		GND							rail
+		SCL		3		PA2 (SSI0Clk)		yellow
+		SDA		4		PA5 (SSI0Tx)		blue
+		RS/DC	5		PA6 (GPIO)			green
+		RES		6		PA7 (GPIO)			red
+		CS		7		PA3 (SSI0Fss)		white
+		
+		Pins below are for the SD-Card:
+		MSO		8		nc
+		SCLK	9		nc
+		MOSI	10	nc
+		CS		11	nc
+		
+		http://www.sainsmart.com/zen/documents/20-011-920/Manual.pdf
+*/
+
+/* Ada Fruit Connections (ST7735)
+
+	 Backlight (pin 10) connected to +3.3 V
+	 MISO (pin 9) unconnected
+	 SCK (pin 8) connected to PA2 (SSI0Clk)
+	 MOSI (pin 7) connected to PA5 (SSI0Tx)
+	 TFT_CS (pin 6) connected to PA3 (SSI0Fss)
+	 CARD_CS (pin 5) unconnected
+	 Data/Command (pin 4) connected to PA6 (GPIO)
+	 RESET (pin 3) connected to PA7 (GPIO)
+	 VCC (pin 2) connected to +3.3 V
+	 Gnd (pin 1) connected to ground
+
+*/
 
 #ifndef _ST7735H_
 #define _ST7735H_

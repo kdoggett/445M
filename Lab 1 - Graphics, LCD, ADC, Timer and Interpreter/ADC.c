@@ -105,7 +105,8 @@ void WaitForInterrupt(void);  // low power mode
 // SS3 interrupts: enabled and promoted to controller
 void ADC_Open(unsigned int channelNum){
   volatile uint32_t delay;
-  // **** GPIO pin initialization ****
+	
+  /* Turn on GPIO Port clocks */
   switch(channelNum){             // 1) activate clock
     case 0:
     case 1:
@@ -126,6 +127,8 @@ void ADC_Open(unsigned int channelNum){
   }
   delay = SYSCTL_RCGCGPIO_R;      // 2) allow time for clock to stabilize
   delay = SYSCTL_RCGCGPIO_R;
+	
+  /* Set direction, enable alternate function, enable pin, and enable analog as alternate function */
   switch(channelNum){
     case 0:                       //      Ain0 is on PE3
       GPIO_PORTE_DIR_R &= ~0x08;  // 3.0) make PE3 input
@@ -201,32 +204,34 @@ void ADC_Open(unsigned int channelNum){
       break;
   }
   DisableInterrupts();
-  SYSCTL_RCGCADC_R |= 0x01;     // activate ADC0 
-  SYSCTL_RCGCTIMER_R |= 0x01;   // activate timer0 
-  delay = SYSCTL_RCGCTIMER_R;   // allow time to finish activating
-  ADC0_PC_R = 0x01;         // configure for 125K samples/sec - this is max number (fine for us because we are going to 10k max)
-  ADC0_SSPRI_R = 0x3210;    // sequencer 0 is highest, sequencer 3 is lowest
-  ADC0_ACTSS_R &= ~0x08;    // disable sample sequencer 3
-  ADC0_EMUX_R = (ADC0_EMUX_R&0xFFFF0FFF)+0x5000; // timer trigger event
-  ADC0_SSMUX3_R = channelNum;
-  ADC0_SSCTL3_R = 0x06;          // set flag and end                       
-  ADC0_IM_R |= 0x08;             // enable SS3 interrupts
-  ADC0_ACTSS_R |= 0x08;          // enable sample sequencer 3
-  NVIC_PRI4_R = (NVIC_PRI4_R&0xFFFF00FF)|0x00004000; //priority 2
-  NVIC_EN0_R = 1<<17;              // enable interrupt 17 in NVIC
+	
+	/*Activate ADC and timer triggered mode */
+  SYSCTL_RCGCADC_R |= 0x01;     											// activate ADC0 
+  SYSCTL_RCGCTIMER_R |= 0x01;   											// activate timer0 
+  delay = SYSCTL_RCGCTIMER_R;   											// allow time to finish activating
+  ADC0_PC_R = 0x01;         													// configure for 125K samples/sec - this is max number (fine for us because we are going to 10k max)
+  ADC0_SSPRI_R = 0x3210;    													// sequencer 0 is highest, sequencer 3 is lowest
+  ADC0_ACTSS_R &= ~0x08;   												  	// disable sample sequencer 3
+  ADC0_EMUX_R = (ADC0_EMUX_R&0xFFFF0FFF)+0x5000; 			// timer trigger event
+  ADC0_SSMUX3_R = channelNum;													// input source
+  ADC0_SSCTL3_R = 0x06;          											// set flag and end                       
+  ADC0_IM_R |= 0x08;             											// enable SS3 interrupts
+  ADC0_ACTSS_R |= 0x08;         									  	// enable sample sequencer 3
+  NVIC_PRI4_R = (NVIC_PRI4_R&0xFFFF00FF)|0x00004000;  // priority 2
+  NVIC_EN0_R = 1<<17;              										// enable interrupt 17 in NVIC
 }
 
 int ADC_Collect(unsigned int chanNum,unsigned int fs,unsigned short buffer[],unsigned int numberOfSamples){
 	ADC_Open(chanNum);
-	TIMER0_CTL_R = 0x00000000;    // disable timer0A during setup
-  TIMER0_CTL_R |= 0x00000020;   // enable timer0A trigger to ADC
-  TIMER0_CFG_R = 0x4;             // configure for 16-bit (was 32) timer mode (datasheet p. 725, changing to 16-bit as per lab instructions, was 0)
-  TIMER0_TAMR_R = 0x00000002;   // configure for periodic mode, default down-count settings
-  TIMER0_TAPR_R = 0;            // prescale value for trigger
+	TIMER0_CTL_R = 0x00;    	// disable timer0A during setup
+  TIMER0_CTL_R |= 0x20;   	// enable timer0A trigger to ADC
+  TIMER0_CFG_R = 0x04;      // configure for 16-bit (was 32) timer mode (datasheet p. 725, changing to 16-bit as per lab instructions, was 0)
+  TIMER0_TAMR_R = 0x02;   	// configure for periodic mode, default down-count settings
+  TIMER0_TAPR_R = 0;        // prescale value for trigger
   TIMER0_TAILR_R = fs-1;    // start value for trigger
-  TIMER0_IMR_R = 0x00000000;    // disable all interrupts
-  TIMER0_CTL_R |= 0x00000001;   // enable timer0A 32-b, periodic, no interrupts
-	EnableInterrupts();  //don't want to do this here
+  TIMER0_IMR_R = 0x00;    	// disable all interrupts
+  TIMER0_CTL_R |= 0x01;   	// enable timer0A 32-b, periodic, no interrupts
+	EnableInterrupts();  			// don't want to do this here
 	
 	return 0; //why do we need return?	
 }

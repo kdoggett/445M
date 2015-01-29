@@ -3,6 +3,8 @@
 
 void (*PeriodicTask)(void);
 
+volatile unsigned char command_in[8];
+
 int OS_AddPeriodicThread(void(*task)(void),unsigned long period,unsigned long priority){
 	SYSCTL_RCGCTIMER_R |= 0x20;
 	PeriodicTask = task;

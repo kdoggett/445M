@@ -29,9 +29,10 @@
 // U0Tx (VCP transmit) connected to PA1
 #include <stdint.h>
 #include "tm4c123gh6pm.h"
-
 #include "FIFO.h"
 #include "UART.h"
+
+#define COMMAND_READY		1
 
 #define NVIC_EN0_INT5           0x00000020  // Interrupt 5 enable
 
@@ -293,24 +294,25 @@ void UART_OutUHex(uint32_t number){
 // Output: Null terminated string
 // -- Modified by Agustinus Darmawan + Mingjie Qiu --
 void UART_InString(char *bufPt, uint16_t max) {
-int length=0;
-char character;
-  character = UART_InChar();
-  while(character != CR){
-    if(character == BS){
-      if(length){
-        bufPt--;
-        length--;
-        UART_OutChar(BS);
-      }
-    }
-    else if(length < max){
-      *bufPt = character;
-      bufPt++;
-      length++;
-      UART_OutChar(character);
-    }
-    character = UART_InChar();
-  }
-  *bufPt = 0;
+	int length = 0;
+	char character;
+		character = UART_InChar();
+		while(character != CR){
+			if(character == BS){
+				if(length){
+					bufPt--;
+					length--;
+					UART_OutChar(BS);
+				}
+			}
+			else if(length < max){
+				*bufPt = character;
+				bufPt++;
+				length++;
+				UART_OutChar(character);
+			}
+			character = UART_InChar();
+		}
+		
+		*bufPt = 0;
 }
