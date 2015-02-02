@@ -9,7 +9,6 @@
 
 #define COMMAND_MAX	10
 
-
 char command[COMMAND_MAX];
 
 void dummy(void){
@@ -57,12 +56,14 @@ int main(void){
 	I/O Redirect & Intepreter 
 	*/
 
-	UART_OutString("working\n\n");		//LCD is working
+	UART_OutString("UART works\n\n");		//LCD is working
 	
 	/*PROCEDURE TWO
 	LCD Driver
 	Below functions test writing to each line of the seperate screens (2 screens, 3 lines each)
 	*/
+	
+	ST7735_Message(1,1,"Screen works",0);
 	
 //	ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
 //	ST7735_Message(1,1,"Line 1:",1);
@@ -78,7 +79,7 @@ int main(void){
 	
   unsigned short DataBuffer[] = {0};
 	
-	ADC_Collect(1,1000,DataBuffer,64);  //channel 1, 10 kHz sample rate, store in DataBuffer, 64 samples
+	ADC_Open(4,8000000);  //channel 1, 10 kHz sample rate, store in DataBuffer, 64 samples
 	
 	/*PROCEDURE FOUR
 	Periodic Timer
@@ -88,11 +89,17 @@ int main(void){
 	
 	/*loop forever*/
 	
-	while(1){
+	while(1){ int i = 0;
 		
-		while(RxFifo_Size() == 0){};					//temp way to see if we have a command (will get much more sophisticated in lab 2)
-		UART_InString(command,COMMAND_MAX);		//get the command from the UART console
-		ProcessCommand(command);							//submit the command for parsing and interpretation
+		unsigned short ADC_Data = ADC_In();
+		UART_OutUDec(ADC_Data);
+		UART_OutChar('\n');
+		for(i = 0;i < 10000000;i++){
+			i++;
+		}
+//		while(RxFifo_Size() == 0){};					//temp way to see if we have a command (will get much more sophisticated in lab 2)
+//		UART_InString(command,COMMAND_MAX);		//get the command from the UART console
+//		ProcessCommand(command);							//submit the command for parsing and interpretation
 	}
 	
 }
