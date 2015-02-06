@@ -815,40 +815,52 @@ void static pushColor(uint16_t color) {
 
 //-----------ST7735_Message--------------
 //Draws a string and long value one one of the two split screens
+
+//clear line before printing
 void ST7735_Message(int screen,int line,char *string,long value){
 	
-	if(screen == 1){
-		if(line == 1){
-		ST7735_DrawString(0, 0, string, ST7735_RED);
-		ST7735_SetCursor(10, 0);
-		ST7735_OutUDec(value);
-		}
-		else if(line == 2){
-			ST7735_DrawString(0, 3, string, ST7735_RED);
-			ST7735_SetCursor(10, 3);
+	if(screen == 0){
+		if(line == 0){
+			ST7735_SetCursor(0, 0);
+			printf("%s",string);
 			ST7735_OutUDec(value);
 		}
+		else if(line == 1){
+			ST7735_SetCursor(0, 2);
+			printf("%s",string);
+			ST7735_OutUDec(value);
+		}
+		else if(line == 2){
+			ST7735_SetCursor(0, 4);
+			printf("%s",string);
+			ST7735_OutUDec(value);		
+		}
 		else if(line == 3){
-			ST7735_DrawString(0, 6, string, ST7735_RED);
-			ST7735_SetCursor(10, 6);
+			ST7735_SetCursor(0, 6);
+			printf("%s",string);
 			ST7735_OutUDec(value);		
 		}
 	}
-	else if(screen == 2){
-		if(line == 1){
-		ST7735_DrawString(0, 9, string, ST7735_RED);
-		ST7735_SetCursor(10, 9);
-		ST7735_OutUDec(value);	
-		}			
-		else if(line == 2){
-			ST7735_DrawString(0, 12, string, ST7735_RED);	
-			ST7735_SetCursor(10, 12);
+	else if(screen == 1){
+		if(line == 0){
+			ST7735_SetCursor(0, 9);
+			printf("%s",string);
 			ST7735_OutUDec(value);
 		}
-		else if (line == 3){
-			ST7735_DrawString(0, 15, string, ST7735_RED);	
-			ST7735_SetCursor(10, 15);
+		else if(line == 1){
+			ST7735_SetCursor(0, 11);
+			printf("%s",string);
 			ST7735_OutUDec(value);
+		}
+		else if(line == 2){
+			ST7735_SetCursor(0, 13);
+			printf("%s",string);
+			ST7735_OutUDec(value);		
+		}
+		else if(line == 3){
+			ST7735_SetCursor(0, 15);
+			printf("%s",string);
+			ST7735_OutUDec(value);		
 		}
 	}
 }
