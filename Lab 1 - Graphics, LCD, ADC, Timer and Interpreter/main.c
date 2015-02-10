@@ -17,49 +17,59 @@ void dummy(void){
 		//UART_OutUDec(time);
 }
 
-void ProcessCommand(char *command){ 
-	int commandNum; 
-	char commandType[COMMAND_MAX] = {0}; 
-	char commandValue[COMMAND_MAX] = {0};
-	int i = 0;
-	
-	//get the command name
-	while(*command != ' '){
-		commandType[i] = *command;
+void ProcessCommand(char *command){
+	char commandType[COMMAND_MAX];
+	uint32_t i = 0;
+	char commandNum;
+	while(1) {
+		if(command[i] == ' ')
+		{
+			break;
+		}
+		else if(command[i] == NULL) {
+			break;
+		}
+		else {
+			commandType[i] = command[i];
+		}
 		i++;
-		command++;
 	}
-	
-	command++;
-	i = 0;
-	
-	//get the command value
-	while(*command != 0){
-		commandValue[i] = *command;
-		i++;
-		command++;
-	}
-	
+	i--;
 	if (strcmp(commandType,"ADC") == 0){
+		commandType[i] = ' ';
+		i++;
 		commandNum = 1;
 	}
 	if (strcmp(commandType,"Timer") == 0){
+		commandType[i] = ' ';
+		i++;
 		commandNum = 2;
 	}
 	if (strcmp(commandType,"LCD") == 0){
+		commandType[i] = ' ';
+		i++;
 		commandNum = 3;
 	}
 		switch(commandNum){
 			case 1:
-				ST7735_Message(1,1,"ADC Debug:",1);
+				while(command[i] != NULL){
+					commandType[i] = command[i];
+					i++;
+				}
 				UART_OutString(commandType);
 				break;
 			case 2:
-				ST7735_Message(1,2,"Timer Debug:",2);
+				while(command[i] != NULL){
+					commandType[i] = command[i];
+					i++;
+				}
 				UART_OutString(commandType);
 				break;
 			case 3:
-				ST7735_Message(1,3,"LCD Debug:",3);
+				while(command[i] != NULL){
+					commandType[i] = command[i];
+					i++;
+				}
 				UART_OutString(commandType);
 				break;
 			default:
