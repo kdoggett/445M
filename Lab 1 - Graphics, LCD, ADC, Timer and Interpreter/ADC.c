@@ -230,15 +230,22 @@ void ADC_Open(unsigned int channelNum, uint32_t period){
 	EnableInterrupts();  			// don't want to do this here
 }
 
-AddIndexFifo(ADC, FIFOSIZE, unsigned short, FIFOSUCCESS, FIFOFAIL);
-
+volatile uint32_t ADCvalue;
 void ADC0Seq3_Handler(void){
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
-	ADCFifo_Put(ADC0_SSFIFO3_R);
+	ADCvalue = ADC0_SSFIFO3_R;
 }
 
-unsigned short ADC_In(void){
-	unsigned short ADC_data;
-	while(ADCFifo_Get(&ADC_data) == FIFOFAIL){};
-	return(ADC_data);
+uint32_t ADC_In(void){
+	return ADCvalue;
+}
+
+int ADC_Collect(uint32_t channelNum, uint32_t fs, uint16_t buffer[], uint32_t numberOfSamples) {
+	uint32_t period = 0;
+	period = (80000000 / fs);					// Divide clock cycel by the specified frequency
+	ADC_Open(channelNum, period);			//Use ADC_Open to properly open up the specified channel at the designmated frequency
+	uint32_t counter;
+	for(counter = 0; counter < numberOfSamples; counter++) {
+		buffer[counter] = ADC_In();
+	}
 }
