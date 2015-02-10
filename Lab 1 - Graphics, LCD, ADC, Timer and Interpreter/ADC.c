@@ -230,6 +230,8 @@ void ADC_Open(unsigned int channelNum, uint32_t period){
 	EnableInterrupts();  			// don't want to do this here
 }
 
+//move buffer up
+
 volatile uint32_t ADCvalue;
 uint8_t ADCstatus = 1;
 void ADC0Seq3_Handler(void){
@@ -247,8 +249,7 @@ uint16_t* ADC_Collect(uint32_t channelNum, uint32_t fs, uint16_t buffer[], uint3
 	ADC_Open(channelNum, period);			//Use ADC_Open to properly open up the specified channel at the designmated frequency
 	uint32_t counter;
 	for(counter = 0; counter < numberOfSamples; counter++) {
-		buffer[counter] = ADC_In();
-		for(i = 0;i < 80000;i++);
+		buffer[counter] = ADC_In();  //move up
 	}
 	return buffer;
 }

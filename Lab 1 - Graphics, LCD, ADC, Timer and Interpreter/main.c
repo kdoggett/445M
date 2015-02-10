@@ -7,18 +7,22 @@
 #include "ADC.h"
 #include "OS.h"
 
-#define COMMAND_MAX	10
+#define COMMAND_MAX	100
 #define NUM_SAMPLES 10
 
 char command[COMMAND_MAX];
 
 void dummy(void){
 		unsigned long time = OS_ReadPeriodicTimer();
-		//UART_OutUDec(time);
+		UART_OutUDec(time);
 }
 
 void ProcessCommand(char *command){
 	char commandType[COMMAND_MAX];
+// Initialize commandType buffer
+	for(int j = 0; j < COMMAND_MAX; j++) {
+		commandType[j] = 0;
+	}
 	uint32_t i = 0;
 	char commandNum;
 	while(1) {
@@ -34,7 +38,6 @@ void ProcessCommand(char *command){
 		}
 		i++;
 	}
-	i--;
 	if (strcmp(commandType,"ADC") == 0){
 		commandType[i] = ' ';
 		i++;
@@ -52,25 +55,24 @@ void ProcessCommand(char *command){
 	}
 		switch(commandNum){
 			case 1:
-				while(command[i] != NULL){
-					commandType[i] = command[i];
-					i++;
-				}
-				UART_OutString(commandType);
+				uint32_t ADCValue = ADC_In();
+				ST7735_Message(1,3,commandType, ADCValue);
+				UART_OutUDec(ADCValue);
 				break;
 			case 2:
-				while(command[i] != NULL){
+				while(command[i] != 0){
 					commandType[i] = command[i];
 					i++;
 				}
 				UART_OutString(commandType);
 				break;
 			case 3:
-				while(command[i] != NULL){
+				while(command[i] != 0){
 					commandType[i] = command[i];
 					i++;
 				}
 				UART_OutString(commandType);
+				ST7735_Message(0,3,commandType,0);
 				break;
 			default:
 				ST7735_Message(2,1,"Default",1);
@@ -83,6 +85,8 @@ void ProcessCommand(char *command){
 int main(void){
 	PLL_Init();
 	UART_Init();
+	PortF_Init();
+	ADC_Open(4, 80000000);
 	ST7735_InitR(INITR_REDTAB);
 	
 	UART_OutString("UART works\n\n");		//LCD is working
@@ -129,17 +133,17 @@ int main(void){
 	Description: Uses Timer5 to implement a simple interrupt for triggering any user task 
 	*/
 
-	/*
-	OS_AddPeriodicThread(*dummy,10000000,0);	//test for periodic timer implementation
-	*/
+	
+	//OS_AddPeriodicThread(*dummy,1000000,0);	//test for periodic timer implementation
+	
 	
 	while(1){
 		
-		/******* INTERPRETER
+		/******* INTERPRETER */
 		while(RxFifo_Size() == 0){};					//temp way to see if we have a command (will get much more sophisticated in lab 2)
 		UART_InString(command,COMMAND_MAX);		//get the command from the UART console
 		ProcessCommand(command);							//submit the command for parsing and interpretation
-		*/
+		
 	}
 		
 }

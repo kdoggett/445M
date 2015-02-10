@@ -821,25 +821,25 @@ void ST7735_Message(int screen,int line,char *string,long value){
 	
 	if(screen == 0){
 		if(line == 0){
-			ST7735_FillRect(0,0,128,8,ST7735_RED);
+			ST7735_FillRect(0,0,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 0);
 			printf("%s",string);
 			ST7735_OutUDec(value);
 		}
 		else if(line == 1){
-			ST7735_FillRect(0,20,128,8,ST7735_RED);
+			ST7735_FillRect(0,20,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 2);
 			printf("%s",string);
 			ST7735_OutUDec(value);
 		}
 		else if(line == 2){
-			ST7735_FillRect(0,40,128,8,ST7735_RED);
+			ST7735_FillRect(0,40,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 4);
 			printf("%s",string);
 			ST7735_OutUDec(value);		
 		}
 		else if(line == 3){
-			ST7735_FillRect(0,60,128,8,ST7735_RED);
+			ST7735_FillRect(0,60,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 6);
 			printf("%s",string);
 			ST7735_OutUDec(value);		
@@ -847,25 +847,25 @@ void ST7735_Message(int screen,int line,char *string,long value){
 	}
 	else if(screen == 1){
 		if(line == 0){
-			ST7735_FillRect(0,90,128,8,ST7735_RED);
+			ST7735_FillRect(0,90,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 9);
 			printf("%s",string);
 			ST7735_OutUDec(value);
 		}
 		else if(line == 1){
-			ST7735_FillRect(0,110,128,8,ST7735_RED);
+			ST7735_FillRect(0,110,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 11);
 			printf("%s",string);
 			ST7735_OutUDec(value);
 		}
 		else if(line == 2){
-			ST7735_FillRect(0,130,128,8,ST7735_BLUE);
+			ST7735_FillRect(0,130,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 13);
 			printf("%s",string);
 			ST7735_OutUDec(value);		
 		}
 		else if(line == 3){
-			ST7735_FillRect(0,150,128,8,ST7735_YELLOW);
+			ST7735_FillRect(0,150,128,8,ST7735_BLACK);
 			ST7735_SetCursor(0, 15);
 			printf("%s",string);
 			ST7735_OutUDec(value);		
