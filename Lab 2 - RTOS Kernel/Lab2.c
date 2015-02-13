@@ -97,7 +97,7 @@ unsigned long thisTime;         // time at current ADC sample
 long jitter;                    // time between measured and expected, in us
   if(NumSamples < RUNLENGTH){   // finite time run
     PE0 ^= 0x01;
-    input = ADC_In();           // channel set when calling ADC_Init
+    //input = ADC_In();           // channel set when calling ADC_Init --------------------
     PE0 ^= 0x01;
     thisTime = OS_Time();       // current time, 12.5 ns
     DASoutput = Filter(input);
@@ -203,7 +203,7 @@ void Consumer(void){
 unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 unsigned long myId = OS_Id(); 
-  //ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz
+  //ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
   NumCreated += OS_AddThread(&Display,128,0); 
   while(NumSamples < RUNLENGTH) { 
     PE2 = 0x04;
@@ -281,7 +281,7 @@ unsigned long myId = OS_Id();
 // Interpreter is a foreground thread, accepts input from serial port, outputs to serial port
 // inputs:  none
 // outputs: none
-void Interpreter(void);    // just a prototype, link to your interpreter
+//void Interpreter(void);    // just a prototype, link to your interpreter ------------
 // add the following commands, leave other commands, if they make sense
 // 1) print performance measures 
 //    time-jitter, number of data points lost, number of calculations performed
@@ -293,7 +293,7 @@ void Interpreter(void);    // just a prototype, link to your interpreter
 
 
 //*******************final user main DEMONTRATE THIS TO TA**********
-int main(void){ 
+int mainMain(void){ 
   OS_Init();           // initialize, disable interrupts
   PortE_Init();
   DataLost = 0;        // lost data between producer and consumer
@@ -307,12 +307,12 @@ int main(void){
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
 //  OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
-  //ADC_Init(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
+  //ADC_Init(4);  // sequencer 3, channel 4, PD3, sampling in DAS() ------------
   OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
 
   NumCreated = 0 ;
 // create initial foreground threads
-  NumCreated += OS_AddThread(&Interpreter,128,2); 
+//  NumCreated += OS_AddThread(&Interpreter,128,2);  ----------
   NumCreated += OS_AddThread(&Consumer,128,1); 
   NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
  
@@ -362,7 +362,7 @@ void Thread3(void){
   }
 }
 
-int Testmain1(void){  // Testmain1
+int main(void){  // Testmain1
   OS_Init();          // initialize, disable interrupts
   PortE_Init();       // profile user threads
   NumCreated = 0 ;
@@ -573,11 +573,11 @@ void Thread6(void){  // foreground thread
     PE0 ^= 0x01;        // debugging toggle bit 0  
   }
 }
-extern void Jitter(void);   // prints jitter information (write this)
+//extern void Jitter(void);   // prints jitter information (write this) -------------
 void Thread7(void){  // foreground thread
   UART_OutString("\n\rEE345M/EE380L, Lab 3 Preparation 2\n\r");
   OS_Sleep(5000);   // 10 seconds        
-  Jitter();         // print jitter information
+  //Jitter();         // print jitter information ---------------
   UART_OutString("\n\r\n\r");
   OS_Kill();
 }

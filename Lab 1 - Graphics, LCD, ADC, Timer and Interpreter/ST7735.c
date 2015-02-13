@@ -815,8 +815,9 @@ void static pushColor(uint16_t color) {
 
 //-----------ST7735_Message--------------
 //Draws a string and long value one one of the two split screens
+//Each logically seperate screen contains four lines
+//Used for interaction with the CLI
 
-//clear line before printing
 void ST7735_Message(int screen,int line,char *string,long value){
 	
 	if(screen == 0){

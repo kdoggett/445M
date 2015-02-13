@@ -126,15 +126,16 @@ ARM Macro Assembler    Page 2
    73 00000040                 END
               00000000 
               00000000 
-Command Line: --debug --xref --cpu=Cortex-M4.fp --apcs=interwork --depend=.\pid
-_stm32.d -o.\pid_stm32.o -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC
+Command Line: --debug --xref --cpu=Cortex-M4 --apcs=interwork --depend=.\pid_st
+m32.d -o.\pid_stm32.o -IC:\Keil\ARM\RV31\INC -IC:\Keil\ARM\CMSIS\Include -IC:\K
 
 
 
 ARM Macro Assembler    Page 3 
 
 
-:\Keil\ARM\Inc\Luminary --list=.\pid_stm32.lst PID_stm32.s
+eil\ARM\Inc\Luminary --predefine="__MICROLIB SETA 1" --list=.\pid_stm32.lst PID
+_stm32.s
 
 
 
