@@ -231,12 +231,14 @@ void ADC_Open(unsigned int channelNum, uint32_t period){
 }
 
 //move buffer up
+AddIndexFifo(ADCBuffer, 1000, uint32_t, FIFOSUCCESS, FIFOFAIL)
 
 volatile uint32_t ADCvalue;
 uint8_t ADCstatus = 1;
 void ADC0Seq3_Handler(void){
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
 	ADCvalue = ADC0_SSFIFO3_R;
+	ADCBufferFifo_Put(ADCvalue);
 }
 
 uint32_t ADC_In(void){
@@ -244,12 +246,15 @@ uint32_t ADC_In(void){
 }
 
 uint16_t* ADC_Collect(uint32_t channelNum, uint32_t fs, uint16_t buffer[], uint32_t numberOfSamples) { int i = 0;
+	ADCBufferFifo_Init();
+	uint32_t value;
 	uint32_t period = 0;
 	period = (80000000 / fs);					// Divide clock cycel by the specified frequency
 	ADC_Open(channelNum, period);			//Use ADC_Open to properly open up the specified channel at the designmated frequency
+	while(ADCBufferFifo_Size() != numberOfSamples){}
 	uint32_t counter;
-	for(counter = 0; counter < numberOfSamples; counter++) {
-		buffer[counter] = ADC_In();  //move up
+	for(counter = 0; counter < numberOfSamples; counter++){
+		buffer[counter] = ADCBufferFifo_Get(&value);
 	}
 	return buffer;
 }
