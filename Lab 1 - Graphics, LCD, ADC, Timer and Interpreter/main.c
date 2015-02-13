@@ -87,10 +87,10 @@ int main(void){
 	UART_Init();
 	PortF_Init();
 	ADC_Open(4, 80000000);
-	ST7735_InitR(INITR_REDTAB);
+	//ST7735_InitR(INITR_REDTAB);
 	
 	UART_OutString("UART works\n\n");		//LCD is working
-	ST7735_Message(0,0,"Screen works",1);
+	//ST7735_Message(0,0,"Screen works",1);
 	
 	/********* PROCEDURE ONE - I/O Redirect & Intepreter 
 	Description: The I/O is redirect in UART.c when we copy data in the software FIFO to the hardware (UART0 register)
@@ -104,16 +104,16 @@ int main(void){
 	
 	//	ST7735_Message(1,1,"Screen works",0);
 	
-		ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
-		ST7735_Message(0,0,"Line 1:",1);
-		ST7735_Message(0,1,"Line 2:",2);
-		ST7735_Message(0,2,"Line 3:",3);
-		ST7735_Message(0,3,"Line 4:",4);
-		ST7735_Message(0,3,"a:",12345);
-		ST7735_Message(1,0,"Line 5:",5);
-		ST7735_Message(1,1,"Line 6:",6);
-		ST7735_Message(1,2,"Line 7:",7);
-		ST7735_Message(1,3,"Line 8:",8);
+//		ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
+//		ST7735_Message(0,0,"Line 1:",1);
+//		ST7735_Message(0,1,"Line 2:",2);
+//		ST7735_Message(0,2,"Line 3:",3);
+//		ST7735_Message(0,3,"Line 4:",4);
+//		ST7735_Message(0,3,"a:",12345);
+//		ST7735_Message(1,0,"Line 5:",5);
+//		ST7735_Message(1,1,"Line 6:",6);
+//		ST7735_Message(1,2,"Line 7:",7);
+//		ST7735_Message(1,3,"Line 8:",8);
 	
 	/********* PROCEDURE THREE - ADC Sampling
 	Description: Collects NUM_SAMPLES on any of the 12 ADC0 channels using sequence 3 with Tomer0A interrupts
@@ -134,7 +134,7 @@ int main(void){
 	*/
 
 	
-	//OS_AddPeriodicThread(*dummy,1000000,0);	//test for periodic timer implementation
+	OS_AddPeriodicThread(*dummy,1000000,0);	//test for periodic timer implementation
 	
 	
 	while(1){
