@@ -155,7 +155,7 @@ void OS_Kill(void);
 // Same function as OS_Sleep(0)
 // input:  none
 // output: none
-void OS_Suspend(void);
+//void OS_Suspend(void);
  
 // ******** OS_Fifo_Init ************
 // Initialize the Fifo to be empty
