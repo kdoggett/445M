@@ -58,7 +58,12 @@ int threadMaxed = 0;
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
+	if(stackNum == 2){
+		tcbs[stackNum].next = &tcbs[0];
+	}
+	else{
 	tcbs[stackNum].next = &tcbs[stackNum + 1]; // first thread points to next thread
+	}
 	tcbs[stackNum].priority = priority;
 	SetInitialStack(stackNum,stackSize); 
 	Stacks[stackNum][stackSize-2] = (int32_t)(task); // PC
@@ -76,14 +81,14 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
-  //NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
-  //NVIC_ST_CURRENT_R = 0;      // any write to current clears it
-  //NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
+  NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
+  NVIC_ST_CURRENT_R = 0;      // any write to current clears it
+  NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
 }
 	
 void OS_Launch(unsigned long theTimeSlice){
-	//NVIC_ST_RELOAD_R = theTimeSlice - 1;
-	//NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm
+	NVIC_ST_RELOAD_R = theTimeSlice - 1;
+	//NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm -----------disable during main1
 	RunPt = &tcbs[0];       // thread 0 will run first
 	StartOS();	
 }
