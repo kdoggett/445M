@@ -7,6 +7,7 @@
 
 #define NUMTHREADS  3        // maximum number of threads
 #define STACKSIZE   100      // number of 32-bit words in stack
+#define PE3  (*((volatile unsigned long *)0x40024020))
 
 struct tcb{
   int32_t 			*sp;      			// pointer to stack (valid for threads not running
