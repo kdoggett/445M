@@ -48,6 +48,9 @@ OS_EnableInterrupts
 ;needs work, push R4-R11 overwrites PC
 OS_Suspend
     CPSID   I                  ; 2) Prevent interrupt during switch
+	SUB		R13,#12
+	PUSH	{R12}
+	PUSH	{R0-R3}
     PUSH    {R4-R11}           ; 3) Save remaining regs r4-11
     LDR     R0, =RunPt         ; 4) R0=pointer to RunPt, old thread
     LDR     R1, [R0]           ;    R1 = RunPt
@@ -56,6 +59,11 @@ OS_Suspend
     STR     R1, [R0]           ;    RunPt = R1
     LDR     SP, [R1]           ; 7) new thread SP; SP = RunPt->sp;
     POP     {R4-R11}           ; 8) restore regs r4-11
+	POP		{R0-R3}
+	POP		{R12}
+	POP     {LR}               ; discard LR from initial stack
+    POP     {LR}               ; start location
+    POP     {R1}               ; discard PSR
     CPSIE   I                  ; 9) tasks run with interrupts enabled
     BX      LR                 ; 10) restore R0-R3,R12,LR,PC,PSR
 	
