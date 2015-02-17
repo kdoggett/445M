@@ -10,7 +10,6 @@ unsigned long NumCreated;   // number of foreground threads created
 #define PE0  (*((volatile unsigned long *)0x40024004))
 #define PE1  (*((volatile unsigned long *)0x40024008))
 #define PE2  (*((volatile unsigned long *)0x40024010))
-#define PE3  (*((volatile unsigned long *)0x40024020))
 	
 unsigned long Count1;   // number of times thread1 loops
 unsigned long Count2;   // number of times thread2 loops
@@ -69,3 +68,4 @@ int main(void){  // Testmain2
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }
+	
