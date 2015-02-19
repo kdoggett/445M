@@ -32,6 +32,7 @@
 #include "FIFO.h"
 #include "UART.h"
 #include "OS.h"
+#include "Lab2.h"
 
 #define COMMAND_READY		1
 
@@ -121,7 +122,7 @@ void static copySoftwareToHardware(void){
 // input ASCII character from UART
 // spin if RxFifo is empty
 char UART_InChar(void){
-	Wait(&UARTReady);
+	OS_Wait(&UARTReady);
   char letter;
   while(RxFifo_Get(&letter) == FIFOFAIL){};
   return(letter);

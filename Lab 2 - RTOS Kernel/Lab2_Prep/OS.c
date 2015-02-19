@@ -97,10 +97,9 @@ void OS_InitSemaphore(Sema4Type *semaPt, long value){
 }
 void OS_Wait(Sema4Type *semaPt){
 	DisableInterrupts();
-	long test = semaPt->Value;
 	while(semaPt->Value <= 0){
 		EnableInterrupts();
-		DisbleInterrupts();		
+		DisableInterrupts();		
 	}
 	semaPt->Value = semaPt->Value - 1;
 	EnableInterrupts();
@@ -113,19 +112,31 @@ void OS_Signal(Sema4Type *semaPt){
 	EndCritical(status);
 }
 
-void OS_bWait(Sema4Type *semaPt){}
-void OS_bSignal(Sema4Type *semaPt){}
+void OS_bWait(Sema4Type *semaPt){
+	DisableInterrupts();
+	while(semaPt->Value == 0){
+		EnableInterrupts();
+		DisableInterrupts();
+	}
+	semaPt->Value = semaPt->Value - 1;
+	EnableInterrupts();
+}
+
+void OS_bSignal(Sema4Type *semaPt){
+	long status;
+	status = StartCritical();
+	semaPt->Value = 1;
+	EndCritical(status);
+}
 	
 /*---------- Future OS Functions -----------*/
 
 unsigned long OS_Id(void){}
-int OS_AddPeriodicThread(void(*task)(void), 
-   unsigned long period, unsigned long priority){}
+int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){}
 int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
 int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
 void OS_Sleep(unsigned long sleepTime){}
 void OS_Kill(void){}
-
 void OS_Fifo_Init(unsigned long size){}
 int OS_Fifo_Put(unsigned long data){}
 unsigned long OS_Fifo_Get(void){}
