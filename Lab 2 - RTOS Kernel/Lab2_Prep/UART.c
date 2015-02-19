@@ -122,7 +122,7 @@ void static copySoftwareToHardware(void){
 // input ASCII character from UART
 // spin if RxFifo is empty
 char UART_InChar(void){
-	OS_Wait(&UARTReady);
+	//OS_Wait(&UARTReady);
   char letter;
   while(RxFifo_Get(&letter) == FIFOFAIL){};
   return(letter);

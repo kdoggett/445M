@@ -57,6 +57,12 @@
 		MOSI	10	nc
 		CS		11	nc
 		
+		white black
+		red white
+		green grey
+		blue purple
+		yellow blue
+		
 		http://www.sainsmart.com/zen/documents/20-011-920/Manual.pdf
 */
 
@@ -77,6 +83,7 @@
 */
 
 #include <stdio.h>
+#include "OS.h"
 #include <stdint.h>
 #include "ST7735.h"
 #include "tm4c123gh6pm.h"
@@ -760,7 +767,9 @@ void ST7735_InitB(void) {
 // Initialization for ST7735R screens (green or red tabs).
 // Input: option one of the enumerated options depending on tabs
 // Output: none
+Sema4Type displayReady;
 void ST7735_InitR(enum initRFlags option) {
+	OS_InitSemaphore(&displayReady,1);
   commonInit(Rcmd1);
   if(option == INITR_GREENTAB) {
     commandList(Rcmd2green);
@@ -815,42 +824,128 @@ void static pushColor(uint16_t color) {
 
 //-----------ST7735_Message--------------
 //Draws a string and long value one one of the two split screens
+#define LEFT_COLUMN			0
+#define	RIGHT_COLUMN		10
+#define	ROW_ONE					0
+#define	ROW_TWO					2
+#define	ROW_THREE				4
+#define	ROW_FOUR				6
+#define	ROW_FIVE				9
+#define	ROW_SIX					11
+#define	ROW_SEVEN				13
+#define	ROW_EIGHT				15
+#define	NUM_LINES				8
+#define	NUM_SCREENS			2
+#define	TEXT_COLOR			ST7735_RED
+#define	VALUE_COLOR			ST7735_YELLOW
+
+char *previousString[NUM_SCREENS][NUM_LINES] = {0};
+long previousValue[NUM_SCREENS][NUM_LINES] = {0};
 void ST7735_Message(int screen,int line,char *string,long value){
+	
+
 	
 	if(screen == 1){
 		if(line == 1){
-		ST7735_DrawString(0, 0, string, ST7735_RED);
-		ST7735_SetCursor(10, 0);
-		ST7735_OutUDec(value);
+			ST7735_DrawString(LEFT_COLUMN, ROW_ONE, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_ONE, string, TEXT_COLOR);
+			previousString[screen][line] = string;
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_ONE);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_ONE);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
 		}
 		else if(line == 2){
-			ST7735_DrawString(0, 3, string, ST7735_RED);
-			ST7735_SetCursor(10, 3);
+			ST7735_DrawString(LEFT_COLUMN, ROW_TWO, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_TWO, string, TEXT_COLOR);
+			previousString[screen][line] = string;
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_TWO);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_TWO);
+			ST7735_SetTextColor(TEXT_COLOR);
 			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
 		}
 		else if(line == 3){
-			ST7735_DrawString(0, 6, string, ST7735_RED);
-			ST7735_SetCursor(10, 6);
-			ST7735_OutUDec(value);		
+			ST7735_DrawString(LEFT_COLUMN, ROW_THREE, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_THREE, string, TEXT_COLOR);
+			previousString[screen][line] = string;
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_THREE);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_THREE);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
+		}
+		else if(line == 4){
+			ST7735_DrawString(LEFT_COLUMN, ROW_FOUR, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_FOUR, string, TEXT_COLOR);
+			previousString[screen][line] = string;
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_FOUR);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_FOUR);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
 		}
 	}
 	else if(screen == 2){
 		if(line == 1){
-		ST7735_DrawString(0, 9, string, ST7735_RED);
-		ST7735_SetCursor(10, 9);
-		ST7735_OutUDec(value);	
+			ST7735_DrawString(LEFT_COLUMN, ROW_FIVE, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_FIVE, string, TEXT_COLOR);
+			previousString[screen][line] = string;
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_FIVE);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_FIVE);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
 		}			
 		else if(line == 2){
-			ST7735_DrawString(0, 12, string, ST7735_RED);	
-			ST7735_SetCursor(10, 12);
+			ST7735_DrawString(LEFT_COLUMN, ROW_SIX, previousString[screen][line], ST7735_BLACK);	
+			ST7735_DrawString(LEFT_COLUMN, ROW_SIX, string, TEXT_COLOR);	
+			previousString[screen][line] = string;
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_SIX);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_SIX);
+			ST7735_SetTextColor(TEXT_COLOR);
 			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
 		}
 		else if (line == 3){
-			ST7735_DrawString(0, 15, string, ST7735_RED);	
-			ST7735_SetCursor(10, 15);
+			ST7735_DrawString(LEFT_COLUMN, ROW_SEVEN, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_SEVEN, string, TEXT_COLOR);
+			previousString[screen][line] = string;			
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_SEVEN);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_SEVEN);
+			ST7735_SetTextColor(TEXT_COLOR);
 			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
+		}
+		else if (line == 4){
+			ST7735_DrawString(LEFT_COLUMN, ROW_EIGHT, previousString[screen][line], ST7735_BLACK);
+			ST7735_DrawString(LEFT_COLUMN, ROW_EIGHT, string, TEXT_COLOR);
+			previousString[screen][line] = string;			
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_EIGHT);
+			ST7735_SetTextColor(ST7735_BLACK);
+			ST7735_OutUDec(previousValue[screen][line]);
+			ST7735_SetCursor(RIGHT_COLUMN, ROW_EIGHT);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);
+			previousValue[screen][line] = value;
 		}
 	}
+
 }
 
 
@@ -1161,7 +1256,10 @@ void ST7735_DrawChar(int16_t x, int16_t y, uint8_t c, int16_t textColor, int16_t
 //        textColor 16-bit color of the characters
 // bgColor is Black and size is 1
 // Output: number of characters printed
+
+
 uint32_t ST7735_DrawString(uint16_t x, uint16_t y, uint8_t *pt, int16_t textColor){
+	OS_bWait(&displayReady);
   uint32_t count = 0;
   if(y>15) return 0;
   while(*pt){
@@ -1171,6 +1269,7 @@ uint32_t ST7735_DrawString(uint16_t x, uint16_t y, uint8_t *pt, int16_t textColo
     if(x>20) return count;  // number of characters printed
     count++;
   }
+	OS_bSignal(&displayReady);
   return count;  // number of characters printed
 }
 

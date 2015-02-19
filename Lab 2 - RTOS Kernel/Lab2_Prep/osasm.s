@@ -70,6 +70,10 @@ OS_Suspend
 
 SysTick_Handler                ; 1) Saves R0-R3,R12,LR,PC,PSR
     CPSID   I                  ; 2) Prevent interrupt during switch
+	LDR 	R0,=0x40024020		
+	LDR		R1,[R0]
+	EOR		R1,R1,#8
+	STR		R1,[R0]
     PUSH    {R4-R11}           ; 3) Save remaining regs r4-11
     LDR     R0, =RunPt         ; 4) R0=pointer to RunPt, old thread
     LDR     R1, [R0]           ;    R1 = RunPt
