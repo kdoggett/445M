@@ -113,6 +113,7 @@ void OS_Signal(Sema4Type *semaPt){
 }
 
 void OS_bWait(Sema4Type *semaPt){
+	PE0 ^= 0x01;       // heartbeat
 	DisableInterrupts();
 	while(semaPt->Value == 0){
 		EnableInterrupts();
@@ -123,6 +124,7 @@ void OS_bWait(Sema4Type *semaPt){
 }
 
 void OS_bSignal(Sema4Type *semaPt){
+	PE1 ^= 0x02;       // heartbeat
 	long status;
 	status = StartCritical();
 	semaPt->Value = 1;

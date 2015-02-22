@@ -10,6 +10,13 @@
 #ifndef __OS_H
 #define __OS_H  1
 
+#define PE0  (*((volatile unsigned long *)0x40024004))
+#define PE1  (*((volatile unsigned long *)0x40024008))
+#define PE2  (*((volatile unsigned long *)0x40024010))
+#define PE3  (*((volatile unsigned long *)0x40024020))
+#define PE4  (*((volatile unsigned long *)0x40024040))
+#define PF1  (*((volatile unsigned long *)0x40025008))
+
 // edit these depending on your clock        
 #define TIME_1MS    80000          
 #define TIME_2MS    (2*TIME_1MS)  

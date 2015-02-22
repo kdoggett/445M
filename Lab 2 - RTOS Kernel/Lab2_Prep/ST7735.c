@@ -87,7 +87,9 @@
 #include <stdint.h>
 #include "ST7735.h"
 #include "tm4c123gh6pm.h"
+#include "Lab2.h"
 
+//extern Sema4Type displayReady;
 // 16 rows (0 to 15) and 21 characters (0 to 20)
 // Requires (11 + size*size*6*8) bytes of transmission for each character
 uint32_t StX=0; // position along the horizonal axis 0 to 20 
@@ -767,9 +769,8 @@ void ST7735_InitB(void) {
 // Initialization for ST7735R screens (green or red tabs).
 // Input: option one of the enumerated options depending on tabs
 // Output: none
-Sema4Type displayReady;
+//Sema4Type displayReady;
 void ST7735_InitR(enum initRFlags option) {
-	OS_InitSemaphore(&displayReady,1);
   commonInit(Rcmd1);
   if(option == INITR_GREENTAB) {
     commandList(Rcmd2green);
@@ -1260,6 +1261,7 @@ void ST7735_DrawChar(int16_t x, int16_t y, uint8_t c, int16_t textColor, int16_t
 
 uint32_t ST7735_DrawString(uint16_t x, uint16_t y, uint8_t *pt, int16_t textColor){
 	OS_bWait(&displayReady);
+//	OS_Wait(&displayReady);
   uint32_t count = 0;
   if(y>15) return 0;
   while(*pt){
@@ -1269,6 +1271,7 @@ uint32_t ST7735_DrawString(uint16_t x, uint16_t y, uint8_t *pt, int16_t textColo
     if(x>20) return count;  // number of characters printed
     count++;
   }
+//	OS_Signal(&displayReady);
 	OS_bSignal(&displayReady);
   return count;  // number of characters printed
 }
