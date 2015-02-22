@@ -2,6 +2,7 @@
 #include "PLL.h"
 #include "tm4c123gh6pm.h"
 #include <stdint.h>
+#include "pins.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -42,8 +43,6 @@ void SetInitialStack(int i, int stackSize){
   Stacks[i][stackSize-15] = 0x05050505;  // R5
   Stacks[i][stackSize-16] = 0x04040404;  // R4
 }
-
-/*--------- OS Functions for Test Main 1 ----------*/
 
 // function definitions in osasm.s
 void OS_DisableInterrupts(void); // Disable interrupts
@@ -88,28 +87,61 @@ void OS_Init(void){
 	
 void OS_Launch(unsigned long theTimeSlice){
 	NVIC_ST_RELOAD_R = theTimeSlice - 1;
-	//NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm -----------disable during main1
+	NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm
 	RunPt = &tcbs[0];       // thread 0 will run first
 	StartOS();	
-}
-	
-	
-/*---------- Future OS Functions -----------*/
-	
-void OS_InitSemaphore(Sema4Type *semaPt, long value){}
-void OS_Wait(Sema4Type *semaPt){}
-void OS_Signal(Sema4Type *semaPt){}
-void OS_bWait(Sema4Type *semaPt){}
-void OS_bSignal(Sema4Type *semaPt){}
+}	
 
-unsigned long OS_Id(void){}
-int OS_AddPeriodicThread(void(*task)(void), 
-   unsigned long period, unsigned long priority){}
+//Semaphore Functions	
+void OS_InitSemaphore(Sema4Type *semaPt, long value){
+	semaPt->Value = value;
+}
+void OS_Wait(Sema4Type *semaPt){
+	DisableInterrupts();
+	while(semaPt->Value <= 0){
+		EnableInterrupts();
+		DisableInterrupts();		
+	}
+	semaPt->Value = semaPt->Value - 1;
+	EnableInterrupts();
+}
+
+void OS_Signal(Sema4Type *semaPt){
+	long status;
+	status = StartCritical();
+	semaPt->Value = semaPt->Value + 1;
+	EndCritical(status);
+}
+
+void OS_bWait(Sema4Type *semaPt){
+	PC4 ^= 0x01;       // heartbeat
+	DisableInterrupts();
+	while(semaPt->Value == 0){
+		EnableInterrupts();
+		DisableInterrupts();
+	}
+	semaPt->Value = semaPt->Value - 1;
+	EnableInterrupts();
+}
+
+void OS_bSignal(Sema4Type *semaPt){
+	PC5 ^= 0x02;       // heartbeat
+	long status;
+	status = StartCritical();
+	semaPt->Value = 1;
+	EndCritical(status);
+}
+
 int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
-int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
+int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){}
 void OS_Sleep(unsigned long sleepTime){}
 void OS_Kill(void){}
+	
+/*---------- Future OS Functions -----------*/
 
+unsigned long OS_Id(void){}
+
+int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
 void OS_Fifo_Init(unsigned long size){}
 int OS_Fifo_Put(unsigned long data){}
 unsigned long OS_Fifo_Get(void){}
