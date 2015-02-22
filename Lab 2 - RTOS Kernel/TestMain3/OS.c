@@ -43,7 +43,7 @@ void SetInitialStack(int i, int stackSize){
   Stacks[i][stackSize-16] = 0x04040404;  // R4
 }
 
-/*--------- OS Functions for Test Main 1 ----------*/
+/*--------- OS Functions for Test Main 3 ----------*/
 
 // function definitions in osasm.s
 void OS_DisableInterrupts(void); // Disable interrupts
@@ -88,28 +88,29 @@ void OS_Init(void){
 	
 void OS_Launch(unsigned long theTimeSlice){
 	NVIC_ST_RELOAD_R = theTimeSlice - 1;
-	//NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm -----------disable during main1
+	NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm
 	RunPt = &tcbs[0];       // thread 0 will run first
 	StartOS();	
 }
 
-void OS_Signal(Sema4Type *semaPt){}
+void OS_Wait(Sema4Type *semaPt){}
+void OS_Signal(Sema4Type *semaPt){}	
 void OS_InitSemaphore(Sema4Type *semaPt, long value){}
 int OS_AddPeriodicThread(void(*task)(void), 
    unsigned long period, unsigned long priority){}
+int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
+void OS_Sleep(unsigned long sleepTime){}
+void OS_Kill(void){}
 	
 	
 /*---------- Future OS Functions -----------*/
 	
 
-void OS_Wait(Sema4Type *semaPt){}
+
 void OS_bWait(Sema4Type *semaPt){}
 void OS_bSignal(Sema4Type *semaPt){}
 unsigned long OS_Id(void){}
-int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
 int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
-void OS_Sleep(unsigned long sleepTime){}
-void OS_Kill(void){}
 void OS_Fifo_Init(unsigned long size){}
 int OS_Fifo_Put(unsigned long data){}
 unsigned long OS_Fifo_Get(void){}
