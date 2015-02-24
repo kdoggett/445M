@@ -92,6 +92,13 @@ void OS_Launch(unsigned long theTimeSlice){
 	StartOS();	
 }	
 
+int count = 0;
+void SysTick_Handler(){
+	PE3 ^= 0x08;
+	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+}
+
+
 //Semaphore Functions	
 void OS_InitSemaphore(Sema4Type *semaPt, long value){
 	semaPt->Value = value;
@@ -134,10 +141,11 @@ void OS_bSignal(Sema4Type *semaPt){
 
 int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){}
-void OS_Sleep(unsigned long sleepTime){}
+void OS_Sleep(unsigned long sleepTime){
+}
 void OS_Kill(void){
 	DisableInterrupts();
-	//move stacks around
+	count++;
 	EnableInterrupts();
 }
 	

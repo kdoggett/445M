@@ -39,7 +39,8 @@ int main(void){
 	//testMain2();		//preemptive using SysTick_Handler()
 	//testMain3();		//switch and LCD and more
 	//testMain4();
-	targetPractice();		//practicing kill function
+	targetPractice();		//practice killing
+	//sleepyTime();				//practice sleeping
 	return 0;
 }
 
@@ -501,17 +502,26 @@ int testMain3(void){   // Testmain3
   return 0;            // this never executes
 }
 
+
+//**********************OS_Kill()*************//
+
 void threadOneKill(void){
-	PE0 ^= 0x01;       // heartbeat
-	OS_Kill();
+	for(;;){
+		PE0 ^= 0x01;       // heartbeat
+	}
 }
 
 void threadTwoKill(void){
-	PE1 ^= 0x02;       // heartbeat	
+	for(;;){
+		PE1 ^= 0x02;       // heartbeat	
+		OS_Kill();
+	}		
 }
 
 void threadThreeKill(void){
-	PE2 ^= 0x04;       // heartbeat	
+	for(;;){
+		PE2 ^= 0x04;       // heartbeat	
+	}
 }
 
 int targetPractice(void){
@@ -521,8 +531,37 @@ int targetPractice(void){
   NumCreated += OS_AddThread(&threadTwoKill,128,3);
 	NumCreated += OS_AddThread(&threadThreeKill,128,3);
 	OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
-	return 0;
-	
+	return 0;	
+}
+
+//**********************OS_Sleep()*************//
+
+void threadOneSleep(void){
+	for(;;){
+		PE0 ^= 0x01;       // heartbeat
+	}
+}
+
+void threadTwoSleep(void){
+	for(;;){
+		PE1 ^= 0x02;       // heartbeat	
+	}
+}
+
+void threadThreeSleep(void){
+	for(;;){
+		PE2 ^= 0x04;       // heartbeat	
+	}
+}
+
+int sleepyTime(void){
+	Debug_Port_Init();
+	OS_Init();           // initialize, disable interrupts
+	NumCreated += OS_AddThread(&threadOneSleep,128,2); 
+  NumCreated += OS_AddThread(&threadTwoSleep,128,3);
+	NumCreated += OS_AddThread(&threadThreeSleep,128,3);
+	OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
+	return 0;	
 }
 
 //*******************Fourth TEST**********

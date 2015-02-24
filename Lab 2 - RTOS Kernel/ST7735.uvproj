@@ -428,6 +428,11 @@
               <FileType>1</FileType>
               <FilePath>.\UART.c</FilePath>
             </File>
+			<File>
+              <FileName>pins.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\pins.c</FilePath>
+            </File>
             <File>
               <FileName>cr4_fft_64_stm32.s</FileName>
               <FileType>2</FileType>
