@@ -14,7 +14,7 @@ struct tcb{
   struct tcb		*next;  				// linked-list pointer to next
 	struct tcb		*prev;					// linked-list pointer to previous
 	char 					ID;							// identifies thread
-	char					sleepState;			// sleep status
+	uint32_t			sleep;			// sleep status
 	char					priority;				// priority of thread
 	char					blockedState;		// blocked status
 };
@@ -95,7 +95,11 @@ void OS_Launch(unsigned long theTimeSlice){
 int count = 0;
 void SysTick_Handler(){
 	PE3 ^= 0x08;
-	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	if(RunPt->next->sleep > 0) {
+		RunPt->sleep = RunPt->sleep - 1;
+		RunPt = RunPt->next;
+	}
+		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
 }
 
 
@@ -140,12 +144,19 @@ void OS_bSignal(Sema4Type *semaPt){
 }
 
 int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
-int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){}
+int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){
+	
+}
 void OS_Sleep(unsigned long sleepTime){
+	RunPt->sleep = sleepTime;
 }
 void OS_Kill(void){
 	DisableInterrupts();
-	count++;
+	tcbType *prevThread = RunPt->prev;		//Define prevThread as thread pointing to current thread
+	tcbType *nextThread = RunPt->next;		//Define nextThread as thread that current thread is poiting to
+	prevThread->next = RunPt->next;				//Thread prior to current thread now points to current thread's next
+	nextThread->prev = RunPt->prev;				//Next thread's previous now points to current's thread's previous
+	RunPt = nextThread;
 	EnableInterrupts();
 }
 	
