@@ -135,7 +135,11 @@ void OS_bSignal(Sema4Type *semaPt){
 int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){}
 void OS_Sleep(unsigned long sleepTime){}
-void OS_Kill(void){}
+void OS_Kill(void){
+	DisableInterrupts();
+	//move stacks around
+	EnableInterrupts();
+}
 	
 /*---------- Future OS Functions -----------*/
 
