@@ -7,8 +7,8 @@
 
 /*--------- TCB Stucture ---------*/
 
-#define NUMTHREADS  3        // maximum number of threads
-#define STACKSIZE   100      // number of 32-bit words in stack
+#define NUMTHREADS  10        // maximum number of threads
+#define STACKSIZE   128      // number of 32-bit words in stack
 
 struct tcb{
   int32_t 			*sp;      			// pointer to stack (valid for threads not running
@@ -19,31 +19,12 @@ struct tcb{
 	char					priority;				// priority of thread
 	char					blockedState;		// blocked status
 };
-typedef struct tcb tcbType;			// typedef tcb as tcbType
-tcbType tcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
-tcbType *RunPt;									// pointer to running thread
+typedef struct tcb tcb;			// typedef tcb as tcbType
+tcb tcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
+tcb *RunPt;									// pointer to running thread
 int32_t Stacks[NUMTHREADS][STACKSIZE];		// allocate memory on stack outside TCB
 
 /*--------- Set Up Initial Stack for Thread ---------*/
-
-void SetInitialStack(int i, int stackSize){
-  tcbs[i].sp = &Stacks[i][stackSize-16]; // thread stack pointer
-  Stacks[i][stackSize-1] = 0x01000000;   // thumb bit
-  Stacks[i][stackSize-3] = 0x14141414;   // R14
-  Stacks[i][stackSize-4] = 0x12121212;   // R12
-  Stacks[i][stackSize-5] = 0x03030303;   // R3
-  Stacks[i][stackSize-6] = 0x02020202;   // R2
-  Stacks[i][stackSize-7] = 0x01010101;   // R1
-  Stacks[i][stackSize-8] = 0x00000000;   // R0
-  Stacks[i][stackSize-9] = 0x11111111;   // R11
-  Stacks[i][stackSize-10] = 0x10101010;  // R10
-  Stacks[i][stackSize-11] = 0x09090909;  // R9
-  Stacks[i][stackSize-12] = 0x08080808;  // R8
-  Stacks[i][stackSize-13] = 0x07070707;  // R7
-  Stacks[i][stackSize-14] = 0x06060606;  // R6
-  Stacks[i][stackSize-15] = 0x05050505;  // R5
-  Stacks[i][stackSize-16] = 0x04040404;  // R4
-}
 
 // function definitions in osasm.s
 void OS_DisableInterrupts(void); // Disable interrupts
@@ -54,30 +35,38 @@ void StartOS(void);
 
 int threadNum = 0;
 int threadMaxed = 0;
+tcb *firstTCB = &tcbs[0];
+tcb *previousTCB;
 
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
 	if(threadNum == 0){
-		tcbs[threadNum].next = tcbs[threadNum].next;
-		tcbs[threadNum].prev = tcbs[threadNum].prev;
+		tcbs[0].next = firstTCB;		
 	}
-//	if(stackNum == 2){
-//		tcbs[stackNum].next = &tcbs[0];
-//	}
-//	else{
-//	tcbs[stackNum].next = &tcbs[stackNum + 1]; // first thread points to next thread
-//	}
-//	tcbs[stackNum].priority = priority;
-//	SetInitialStack(stackNum,stackSize); 
-//	Stacks[stackNum][stackSize-2] = (int32_t)(task); // PC
-//	stackNum++;
-//	if(stackNum > NUMTHREADS){
-//		threadMaxed = 1;
-//	}
-//	else {
-//		threadMaxed = 0;
-//	}
+	else{
+		tcbs[threadNum - 1].next = &tcbs[threadNum];
+		tcbs[threadNum].next = firstTCB;
+	}
+	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
+	tcbs[threadNum].sleep = 0;
+	Stacks[threadNum][stackSize-1] = 0x01000000;   // thumb bit
+	Stacks[threadNum][stackSize-2] = (int32_t)(task); // PC
+  Stacks[threadNum][stackSize-3] = 0x14141414;   // R14
+  Stacks[threadNum][stackSize-4] = 0x12121212;   // R12
+  Stacks[threadNum][stackSize-5] = 0x03030303;   // R3
+  Stacks[threadNum][stackSize-6] = 0x02020202;   // R2
+  Stacks[threadNum][stackSize-7] = 0x01010101;   // R1
+  Stacks[threadNum][stackSize-8] = 0x00000000;   // R0
+  Stacks[threadNum][stackSize-9] = 0x11111111;   // R11
+  Stacks[threadNum][stackSize-10] = 0x10101010;  // R10
+  Stacks[threadNum][stackSize-11] = 0x09090909;  // R9
+  Stacks[threadNum][stackSize-12] = 0x08080808;  // R8
+  Stacks[threadNum][stackSize-13] = 0x07070707;  // R7
+  Stacks[threadNum][stackSize-14] = 0x06060606;  // R6
+  Stacks[threadNum][stackSize-15] = 0x05050505;  // R5
+  Stacks[threadNum][stackSize-16] = 0x04040404;  // R4
+	threadNum++;
 	EndCritical(status);
 	return threadMaxed;
 }
@@ -85,7 +74,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
-//	Timer2A_Init();
+	Timer2A_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
@@ -183,8 +172,8 @@ void OS_Sleep(unsigned long sleepTime){
 }
 void OS_Kill(void){
 	DisableInterrupts();
-	tcbType *prevThread = RunPt->prev;		//Define prevThread as thread pointing to current thread
-	tcbType *nextThread = RunPt->next;		//Define nextThread as thread that current thread is poiting to
+	tcb *prevThread = RunPt->prev;		//Define prevThread as thread pointing to current thread
+	tcb *nextThread = RunPt->next;		//Define nextThread as thread that current thread is poiting to
 	prevThread->next = RunPt->next;				//Thread prior to current thread now points to current thread's next
 	nextThread->prev = RunPt->prev;				//Next thread's previous now points to current's thread's previous
 	RunPt = nextThread;
@@ -194,7 +183,6 @@ void OS_Kill(void){
 /*---------- Future OS Functions -----------*/
 
 unsigned long OS_Id(void){}
-
 int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
 void OS_Fifo_Init(unsigned long size){}
 int OS_Fifo_Put(unsigned long data){}

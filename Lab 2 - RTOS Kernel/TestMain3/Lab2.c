@@ -24,11 +24,11 @@ unsigned long Count5;   // number of times thread5 loops
 Sema4Type Readyc;        // set in background
 int Lost;
 void BackgroundThread1c(void){   // called at 1000 Hz
+	PE0 ^= 0x01;
   Count1++;
   OS_Signal(&Readyc);
 }
 void Thread5c(void){
-
   for(;;){
     OS_Wait(&Readyc);
     Count5++;   // Count2 + Count5 should equal Count1 
@@ -37,15 +37,15 @@ void Thread5c(void){
 }
 void Thread2c(void){
 
-  //OS_InitSemaphore(&Readyc,0);
+  OS_InitSemaphore(&Readyc,0);
   Count1 = 0;    // number of times signal is called      
   Count2 = 0;    
   Count5 = 0;    // Count2 + Count5 should equal Count1  
-  //NumCreated += OS_AddThread(&Thread5c,128,3); 
-//  OS_AddPeriodicThread(&BackgroundThread1c,TIME_1MS,0); 
+  NumCreated += OS_AddThread(&Thread5c,128,3); 
+  OS_AddPeriodicThread(&BackgroundThread1c,TIME_1MS,0); 
   for(;;){
-			PE0 ^= 0x01;       // heartbeat
-    //OS_Wait(&Readyc);
+		PE0 ^= 0x01;       // heartbeat
+    OS_Wait(&Readyc);
     Count2++;   // Count2 + Count5 should equal Count1
   }
 }
@@ -55,6 +55,14 @@ void Thread3c(void){
   Count3 = 0;          
   for(;;){
 		PE1 ^= 0x02;       // heartbeat
+    Count3++;
+  }
+}
+void Thread4c(void){
+	
+  Count3 = 0;          
+  for(;;){
+		PE2 ^= 0x04;       // heartbeat
     Count3++;
   }
 }
@@ -81,6 +89,7 @@ int main(void){   // Testmain3
   //OS_AddSW1Task(&BackgroundThread5c,2);
   NumCreated += OS_AddThread(&Thread2c,128,2); 
   NumCreated += OS_AddThread(&Thread3c,128,3); 
+	NumCreated += OS_AddThread(&Thread4c,128,3); 
   //NumCreated += OS_AddThread(&BounceWait,128,3); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
