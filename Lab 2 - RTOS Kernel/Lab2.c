@@ -503,67 +503,6 @@ int testMain3(void){   // Testmain3
 }
 
 
-//**********************OS_Kill()*************//
-
-void threadOneKill(void){
-	for(;;){
-		PE0 ^= 0x01;       // heartbeat
-	}
-}
-
-void threadTwoKill(void){
-	for(;;){
-		PE1 ^= 0x02;       // heartbeat	
-		OS_Kill();
-	}		
-}
-
-void threadThreeKill(void){
-	for(;;){
-		PE2 ^= 0x04;       // heartbeat	
-	}
-}
-
-int targetPractice(void){
-	Debug_Port_Init();
-	OS_Init();           // initialize, disable interrupts
-	NumCreated += OS_AddThread(&threadOneKill,128,2); 
-  NumCreated += OS_AddThread(&threadTwoKill,128,3);
-	NumCreated += OS_AddThread(&threadThreeKill,128,3);
-	OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
-	return 0;	
-}
-
-//**********************OS_Sleep()*************//
-
-void threadOneSleep(void){
-	for(;;){
-		PE0 ^= 0x01;       // heartbeat
-	}
-}
-
-void threadTwoSleep(void){
-	for(;;){
-		PE1 ^= 0x02;       // heartbeat	
-	}
-}
-
-void threadThreeSleep(void){
-	for(;;){
-		PE2 ^= 0x04;       // heartbeat	
-	}
-}
-
-int sleepyTime(void){
-	Debug_Port_Init();
-	OS_Init();           // initialize, disable interrupts
-	NumCreated += OS_AddThread(&threadOneSleep,128,2); 
-  NumCreated += OS_AddThread(&threadTwoSleep,128,3);
-	NumCreated += OS_AddThread(&threadThreeSleep,128,3);
-	OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
-	return 0;	
-}
-
 //*******************Fourth TEST**********
 // Once the third test runs, run this example (Lab 1 part 2)
 // Count1 should exactly equal Count2

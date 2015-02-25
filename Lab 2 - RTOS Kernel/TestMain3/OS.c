@@ -2,6 +2,8 @@
 #include "PLL.h"
 #include "tm4c123gh6pm.h"
 #include <stdint.h>
+#include "pins.h"
+#include "Timer2A.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -13,7 +15,7 @@ struct tcb{
   struct tcb		*next;  				// linked-list pointer to next
 	struct tcb		*prev;					// linked-list pointer to previous
 	char 					ID;							// identifies thread
-	char					sleepState;			// sleep status
+	uint32_t			sleep;			// sleep status
 	char					priority;				// priority of thread
 	char					blockedState;		// blocked status
 };
@@ -43,8 +45,6 @@ void SetInitialStack(int i, int stackSize){
   Stacks[i][stackSize-16] = 0x04040404;  // R4
 }
 
-/*--------- OS Functions for Test Main 3 ----------*/
-
 // function definitions in osasm.s
 void OS_DisableInterrupts(void); // Disable interrupts
 void OS_EnableInterrupts(void);  // Enable interrupts
@@ -52,28 +52,32 @@ int32_t StartCritical(void);
 void EndCritical(int32_t primask);
 void StartOS(void);
 
-int stackNum = 0;
+int threadNum = 0;
 int threadMaxed = 0;
 
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
-	if(stackNum == 2){
-		tcbs[stackNum].next = &tcbs[0];
+	if(threadNum == 0){
+		tcbs[threadNum].next = tcbs[threadNum].next;
+		tcbs[threadNum].prev = tcbs[threadNum].prev;
 	}
-	else{
-	tcbs[stackNum].next = &tcbs[stackNum + 1]; // first thread points to next thread
-	}
-	tcbs[stackNum].priority = priority;
-	SetInitialStack(stackNum,stackSize); 
-	Stacks[stackNum][stackSize-2] = (int32_t)(task); // PC
-	stackNum++;
-	if(stackNum > NUMTHREADS){
-		threadMaxed = 1;
-	}
-	else {
-		threadMaxed = 0;
-	}
+//	if(stackNum == 2){
+//		tcbs[stackNum].next = &tcbs[0];
+//	}
+//	else{
+//	tcbs[stackNum].next = &tcbs[stackNum + 1]; // first thread points to next thread
+//	}
+//	tcbs[stackNum].priority = priority;
+//	SetInitialStack(stackNum,stackSize); 
+//	Stacks[stackNum][stackSize-2] = (int32_t)(task); // PC
+//	stackNum++;
+//	if(stackNum > NUMTHREADS){
+//		threadMaxed = 1;
+//	}
+//	else {
+//		threadMaxed = 0;
+//	}
 	EndCritical(status);
 	return threadMaxed;
 }
@@ -81,6 +85,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
+//	Timer2A_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
@@ -91,25 +96,105 @@ void OS_Launch(unsigned long theTimeSlice){
 	NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm
 	RunPt = &tcbs[0];       // thread 0 will run first
 	StartOS();	
+}	
+
+int count = 0;
+void SysTick_Handler(){
+	PE3 ^= 0x08;
+//	if(RunPt->next->sleep > 0) {
+//		RunPt->sleep = RunPt->sleep - 1;
+//		RunPt = RunPt->next;
+//	}
+		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
 }
 
-void OS_Wait(Sema4Type *semaPt){}
-void OS_Signal(Sema4Type *semaPt){}	
-void OS_InitSemaphore(Sema4Type *semaPt, long value){}
-int OS_AddPeriodicThread(void(*task)(void), 
-   unsigned long period, unsigned long priority){}
-int OS_AddSW1Task(void(*task)(void), unsigned long priority){}
-void OS_Sleep(unsigned long sleepTime){}
-void OS_Kill(void){}
+
+//Semaphore Functions	
+void OS_InitSemaphore(Sema4Type *semaPt, long value){
+	semaPt->Value = value;
+}
+void OS_Wait(Sema4Type *semaPt){
+	DisableInterrupts();
+	while(semaPt->Value <= 0){
+		EnableInterrupts();
+		DisableInterrupts();		
+	}
+	semaPt->Value = semaPt->Value - 1;
+	EnableInterrupts();
+}
+
+void OS_Signal(Sema4Type *semaPt){
+	long status;
+	status = StartCritical();
+	semaPt->Value = semaPt->Value + 1;
+	EndCritical(status);
+}
+
+void OS_bWait(Sema4Type *semaPt){
+	PC4 ^= 0x01;       // heartbeat
+	DisableInterrupts();
+	while(semaPt->Value == 0){
+		EnableInterrupts();
+		DisableInterrupts();
+	}
+	semaPt->Value = semaPt->Value - 1;
+	EnableInterrupts();
+}
+
+void OS_bSignal(Sema4Type *semaPt){
+	PC5 ^= 0x02;       // heartbeat
+	long status;
+	status = StartCritical();
+	semaPt->Value = 1;
+	EndCritical(status);
+}
+
+void (*SW1Task)(void);
+
+int OS_AddSW1Task(void(*task)(void), unsigned long priority){     
+	SW1Task = task;
+  SYSCTL_RCGCGPIO_R |= 0x00000020; // (a) activate clock for port F
+  GPIO_PORTF_DIR_R &= ~0x10;    // (c) make PF4 in (built-in button)
+  GPIO_PORTF_AFSEL_R &= ~0x10;  //     disable alt funct on PF4
+  GPIO_PORTF_DEN_R |= 0x10;     //     enable digital I/O on PF4   
+  GPIO_PORTF_PCTL_R &= ~0x000F0000; // configure PF4 as GPIO
+  GPIO_PORTF_AMSEL_R = 0;       //     disable analog functionality on PF
+  GPIO_PORTF_PUR_R |= 0x10;     //     enable weak pull-up on PF4
+  GPIO_PORTF_IS_R &= ~0x10;     // (d) PF4 is edge-sensitive
+  GPIO_PORTF_IBE_R &= ~0x10;    //     PF4 is not both edges
+  GPIO_PORTF_IEV_R &= ~0x10;    //     PF4 falling edge event
+  GPIO_PORTF_ICR_R = 0x10;      // (e) clear flag4
+  GPIO_PORTF_IM_R |= 0x10;      // (f) arm interrupt on PF4 *** No IME bit as mentioned in Book ***
+  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|0x00A00000; // (g) priority 5
+  NVIC_EN0_R = 0x40000000;      // (h) enable interrupt 30 in NVIC
+	return 1;
+}
+
+void GPIO_PortF_Handler(void){
+	(*SW1Task)();	
+}
 	
+int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){
+	Timer2A_Launch(task, period);
+	return 1;
+}
+void OS_Sleep(unsigned long sleepTime){
+	RunPt->sleep = sleepTime;
+}
+void OS_Kill(void){
+	DisableInterrupts();
+	tcbType *prevThread = RunPt->prev;		//Define prevThread as thread pointing to current thread
+	tcbType *nextThread = RunPt->next;		//Define nextThread as thread that current thread is poiting to
+	prevThread->next = RunPt->next;				//Thread prior to current thread now points to current thread's next
+	nextThread->prev = RunPt->prev;				//Next thread's previous now points to current's thread's previous
+	RunPt = nextThread;
+	EnableInterrupts();
+}
 	
 /*---------- Future OS Functions -----------*/
-	
 
-
-void OS_bWait(Sema4Type *semaPt){}
-void OS_bSignal(Sema4Type *semaPt){}
 unsigned long OS_Id(void){}
+
 int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
 void OS_Fifo_Init(unsigned long size){}
 int OS_Fifo_Put(unsigned long data){}
