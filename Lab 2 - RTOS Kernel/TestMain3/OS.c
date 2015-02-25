@@ -41,6 +41,7 @@ tcb *previousTCB;
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
+	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
 	if(threadNum == 0){
 		tcbs[0].next = firstTCB;		
 	}
@@ -48,8 +49,8 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 		tcbs[threadNum - 1].next = &tcbs[threadNum];
 		tcbs[threadNum].next = firstTCB;
 	}
-	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
 	tcbs[threadNum].sleep = 0;
+	tcbs[threadNum].priority = priority;
 	Stacks[threadNum][stackSize-1] = 0x01000000;   // thumb bit
 	Stacks[threadNum][stackSize-2] = (int32_t)(task); // PC
   Stacks[threadNum][stackSize-3] = 0x14141414;   // R14
@@ -89,11 +90,11 @@ void OS_Launch(unsigned long theTimeSlice){
 
 int count = 0;
 void SysTick_Handler(){
-	PE3 ^= 0x08;
-//	if(RunPt->next->sleep > 0) {
-//		RunPt->sleep = RunPt->sleep - 1;
-//		RunPt = RunPt->next;
-//	}
+	PE3_DIO3 ^= 0x08;
+	if(RunPt->next->sleep > 0) {
+		RunPt->sleep = RunPt->sleep - 1;
+		RunPt = RunPt->next;
+	}
 		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
 }
 
@@ -120,7 +121,6 @@ void OS_Signal(Sema4Type *semaPt){
 }
 
 void OS_bWait(Sema4Type *semaPt){
-	PC4 ^= 0x01;       // heartbeat
 	DisableInterrupts();
 	while(semaPt->Value == 0){
 		EnableInterrupts();
@@ -131,7 +131,6 @@ void OS_bWait(Sema4Type *semaPt){
 }
 
 void OS_bSignal(Sema4Type *semaPt){
-	PC5 ^= 0x02;       // heartbeat
 	long status;
 	status = StartCritical();
 	semaPt->Value = 1;
@@ -159,7 +158,7 @@ int OS_AddSW1Task(void(*task)(void), unsigned long priority){
 	return 1;
 }
 
-void GPIO_PortF_Handler(void){
+void GPIOPortF_Handler(void){
 	(*SW1Task)();	
 }
 	
@@ -167,17 +166,17 @@ int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long 
 	Timer2A_Launch(task, period);
 	return 1;
 }
+
 void OS_Sleep(unsigned long sleepTime){
 	RunPt->sleep = sleepTime;
 }
 void OS_Kill(void){
 	DisableInterrupts();
-	tcb *prevThread = RunPt->prev;		//Define prevThread as thread pointing to current thread
-	tcb *nextThread = RunPt->next;		//Define nextThread as thread that current thread is poiting to
+	tcb *prevThread = RunPt->prev;		//Define nextThread as thread that current thread is poiting to
 	prevThread->next = RunPt->next;				//Thread prior to current thread now points to current thread's next
-	nextThread->prev = RunPt->prev;				//Next thread's previous now points to current's thread's previous
-	RunPt = nextThread;
+	RunPt = RunPt->next;
 	EnableInterrupts();
+	PendSV_Handler();
 }
 	
 /*---------- Future OS Functions -----------*/

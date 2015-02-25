@@ -55,16 +55,17 @@ void Timer2A_Init(void){ volatile unsigned long delay;
   NVIC_PRI4_R = (NVIC_PRI4_R&0x00FFFFFF)|0x80000000; // 8) priority 4
 // interrupts enabled in the main program after all devices initialized
 // vector number 35, interrupt number 19
-  NVIC_EN0_R = 1<<19;           // 9) enable IRQ 19 in NVIC
+  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
 }
 
 void Timer2A_Launch(void(*task)(void), uint32_t period) {
 	  PeriodicTask = task;          // user function
+		TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A
 	  TIMER2_TAILR_R = period-1;    // 4) reload value
-	  TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A
+	  
 }
 
 void Timer2A_Handler(void){
-  TIMER0_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
+  TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
   (*PeriodicTask)();                // execute user task
 }
