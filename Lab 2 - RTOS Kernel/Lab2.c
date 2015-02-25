@@ -39,7 +39,7 @@ int main(void){
 	//testMain2();		//preemptive using SysTick_Handler()
 	//testMain3();		//switch and LCD and more
 	//testMain4();
-	targetPractice();		//practice killing
+	//targetPractice();		//practice killing
 	//sleepyTime();				//practice sleeping
 	return 0;
 }
