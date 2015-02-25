@@ -78,7 +78,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 	threadNum++;
 	uint16_t threadIndex = 0;
 	tcb *firstThread = &tcbs[0];
-	tcb *lastThread =  &tcbs[threadNum];	
+	tcb *lastThread =  &tcbs[threadNum-1];	
 	while(firstThread->next != lastThread) {
 		if(firstThread->priority > firstThread->next->priority) {
 			firstThread->prev->next = firstThread->next;
@@ -98,7 +98,8 @@ void OS_Init(void){
 	Timer2A_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
-  NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
+  NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6
+	NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0xFF00FFFF)|0x00E00000; // priority 7
 }
 	
 void OS_Launch(unsigned long theTimeSlice){
@@ -159,9 +160,11 @@ void OS_bSignal(Sema4Type *semaPt){
 
 void (*SW1Task)(void);
 
-int OS_AddSW1Task(void(*task)(void), unsigned long priority){     
+int OS_AddSW1Task(void(*task)(void), unsigned long priority){ 
+	volatile unsigned long delay;
 	SW1Task = task;
   SYSCTL_RCGCGPIO_R |= 0x00000020; // (a) activate clock for port F
+	delay = SYSCTL_RCGC2_R;						// settle
   GPIO_PORTF_DIR_R &= ~0x10;    // (c) make PF4 in (built-in button)
   GPIO_PORTF_AFSEL_R &= ~0x10;  //     disable alt funct on PF4
   GPIO_PORTF_DEN_R |= 0x10;     //     enable digital I/O on PF4   

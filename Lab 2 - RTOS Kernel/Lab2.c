@@ -33,11 +33,11 @@
 #include "pins.h"
 
 int main(void){
-	mainMain();
+	//mainMain();
 	//testMain1();  	//complete, removed
 	//testMain2();		//complete, removed
 	//testMain3();		//switch debounce, OS_Kill(), OS_Sleep()
-	//testMain4();
+	testMain4();
 	return 0;
 }
 
@@ -460,7 +460,7 @@ void Thread4d(void){ int i;
 void BackgroundThread5d(void){   // called when Select button pushed
   NumCreated += OS_AddThread(&Thread4d,128,3); 
 }
-int Testmain4(void){   // Testmain4
+int testMain4(void){   // Testmain4
 	Debug_Port_Init();
   Count4 = 0;          
   OS_Init();           // initialize, disable interrupts
