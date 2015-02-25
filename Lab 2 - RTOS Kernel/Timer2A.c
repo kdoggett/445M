@@ -43,9 +43,9 @@ void (*PeriodicTask)(void);   // user function
 // Inputs:  task is a pointer to a user function
 //          period in units (1/clockfreq), 32 bits
 // Outputs: none
-void Timer2A_Init(void){long sr;
-  sr = StartCritical(); 
-  SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate TIMER2
+void Timer2A_Init(void){ volatile unsigned long delay;
+  SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
+	delay = SYSCTL_RCGC2_R;						// settle
   TIMER2_CTL_R = 0x00000000;    // 1) disable TIMER2A during setup
   TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
   TIMER2_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
@@ -55,17 +55,17 @@ void Timer2A_Init(void){long sr;
   NVIC_PRI4_R = (NVIC_PRI4_R&0x00FFFFFF)|0x80000000; // 8) priority 4
 // interrupts enabled in the main program after all devices initialized
 // vector number 35, interrupt number 19
-  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 19 in NVIC
-  EndCritical(sr);
+  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
 }
 
 void Timer2A_Launch(void(*task)(void), uint32_t period) {
 	  PeriodicTask = task;          // user function
+		TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A
 	  TIMER2_TAILR_R = period-1;    // 4) reload value
-	  TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A
+	  
 }
 
 void Timer2A_Handler(void){
-  TIMER0_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
+  TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
   (*PeriodicTask)();                // execute user task
 }

@@ -28,11 +28,12 @@
 #include "ST7735.h"
 #include "ADC.h"
 #include "UART.h"
+#include "PLL.h"
 #include <string.h> 
 #include "pins.h"
 
 int main(void){
-	//mainMain();
+	mainMain();
 	//testMain1();  	//complete, removed
 	//testMain2();		//complete, removed
 	//testMain3();		//switch debounce, OS_Kill(), OS_Sleep()
@@ -64,16 +65,16 @@ long MaxJitter;             // largest time jitter between interrupts in usec
 unsigned long const JitterSize=JITTERSIZE;
 unsigned long JitterHistogram[JITTERSIZE]={0,};
 
-void PortE_Init(void){ unsigned long volatile delay;
-  SYSCTL_RCGC2_R |= 0x10;       // activate port E
-  delay = SYSCTL_RCGC2_R;        
-  delay = SYSCTL_RCGC2_R;         
-  GPIO_PORTE_DIR_R |= 0x0F;    // make PE3_DIO3-0 output heartbeats
-  GPIO_PORTE_AFSEL_R &= ~0x0F;   // disable alt funct on PE3_DIO3-0
-  GPIO_PORTE_DEN_R |= 0x0F;     // enable digital I/O on PE3_DIO3-0
-  GPIO_PORTE_PCTL_R = ~0x0000FFFF;
-  GPIO_PORTE_AMSEL_R &= ~0x0F;;      // disable analog functionality on PF
-}
+//void PortE_Init(void){ unsigned long volatile delay;
+//  SYSCTL_RCGC2_R |= 0x10;       // activate port E
+//  delay = SYSCTL_RCGC2_R;        
+//  delay = SYSCTL_RCGC2_R;         
+//  GPIO_PORTE_DIR_R |= 0x0F;    // make PE3_DIO3-0 output heartbeats
+//  GPIO_PORTE_AFSEL_R &= ~0x0F;   // disable alt funct on PE3_DIO3-0
+//  GPIO_PORTE_DEN_R |= 0x0F;     // enable digital I/O on PE3_DIO3-0
+//  GPIO_PORTE_PCTL_R = ~0x0000FFFF;
+//  GPIO_PORTE_AMSEL_R &= ~0x0F;;      // disable analog functionality on PF
+//}
 //------------------Task 1--------------------------------
 // 2 kHz sampling ADC channel 1, using software start trigger
 // background thread executed at 2 kHz
@@ -315,15 +316,14 @@ int mainMain(void){
 //*******attach background tasks***********
   //OS_AddSW1Task(&SW1Push,2);
 //  OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
-  ADC_Open(4,40000);  // sequencer 3, channel 4, PD3, sampling in DAS()
+  ADC_Open(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
   OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
-
+	//DAS();
   NumCreated = 0 ;
 // create initial foreground threads
 	//NumCreated += OS_AddThread(&Interpreter,128,2);  ----------
   //NumCreated += OS_AddThread(&Consumer,128,1); 
   //NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
- 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }
@@ -529,7 +529,7 @@ void TaskB(void){       // called every pB in background
 }
 
 int Testmain5(void){       // Testmain5 Lab 3
-  PortE_Init();
+  //PortE_Init();
   OS_Init();           // initialize, disable interrupts
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread6,128,2); 
@@ -619,7 +619,7 @@ int Testmain6(void){      // Testmain6  Lab 3
   volatile unsigned long delay;
   OS_Init();           // initialize, disable interrupts
   delay = add(3,4);
-  PortE_Init();
+  //PortE_Init();
   SignalCount1 = 0;   // number of times s is signaled
   SignalCount2 = 0;   // number of times s is signaled
   SignalCount3 = 0;   // number of times s is signaled
@@ -658,7 +658,7 @@ void Thread8(void){       // only thread running
   }
 }
 int Testmain7(void){       // Testmain7
-  PortE_Init();
+  //PortE_Init();
   OS_Init();           // initialize, disable interrupts
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread8,128,2); 

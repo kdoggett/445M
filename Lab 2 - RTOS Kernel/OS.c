@@ -183,7 +183,9 @@ void OS_MailBox_Init(void){}
 void OS_Fifo_Init(unsigned long size){}
 int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
 unsigned long OS_Time(void){ unsigned long time;
+	DisableInterrupts();
 	time = NVIC_ST_CURRENT_R;
+	EnableInterrupts();
 	return time;
 }
 unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){}

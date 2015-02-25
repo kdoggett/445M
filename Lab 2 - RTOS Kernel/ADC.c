@@ -1,112 +1,18 @@
-// ADCT0ATrigger.c
-// Runs on LM4F120/TM4C123
-// Provide a function that initializes Timer0A to trigger ADC
-// SS3 conversions and request an interrupt when the conversion
-// is complete.
-// Daniel Valvano
-// September 11, 2013
-
-/* This example accompanies the book
-   "Embedded Systems: Real Time Interfacing to Arm Cortex M Microcontrollers",
-   ISBN: 978-1463590154, Jonathan Valvano, copyright (c) 2014
-
- Copyright 2014 by Jonathan W. Valvano, valvano@mail.utexas.edu
-    You may use, edit, run or distribute this file
-    as long as the above copyright notice remains
- THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
- OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
- VALVANO SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL,
- OR CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
- For more information about my classes, my research, and my books, see
- http://users.ece.utexas.edu/~valvano/
- */
-#include <stdint.h>
 #include "tm4c123gh6pm.h"
-#include "FIFO.h"
+#include <stdint.h>
 
-#define NVIC_EN0_INT17          0x00020000  // Interrupt 17 enable
-#define TIMER_CFG_16_BIT        0x00000004  // 16-bit timer configuration,
-                                            // function is controlled by bits
-                                            // 1:0 of GPTMTAMR and GPTMTBMR
-#define TIMER_TAMR_TACDIR       0x00000010  // GPTM Timer A Count Direction
-#define TIMER_TAMR_TAMR_PERIOD  0x00000002  // Periodic Timer mode
-#define TIMER_CTL_TAOTE         0x00000020  // GPTM TimerA Output Trigger
-                                            // Enable
-#define TIMER_CTL_TAEN          0x00000001  // GPTM TimerA Enable
-#define TIMER_IMR_TATOIM        0x00000001  // GPTM TimerA Time-Out Interrupt
-                                            // Mask
-#define TIMER_TAILR_TAILRL_M    0x0000FFFF  // GPTM TimerA Interval Load
-                                            // Register Low
-#define ADC_ACTSS_ASEN3         0x00000008  // ADC SS3 Enable
-#define ADC_RIS_INR3            0x00000008  // SS3 Raw Interrupt Status
-#define ADC_IM_MASK3            0x00000008  // SS3 Interrupt Mask
-#define ADC_ISC_IN3             0x00000008  // SS3 Interrupt Status and Clear
-#define ADC_EMUX_EM3_M          0x0000F000  // SS3 Trigger Select mask
-#define ADC_EMUX_EM3_TIMER      0x00005000  // Timer
-#define ADC_SSPRI_SS3_4TH       0x00003000  // fourth priority
-#define ADC_SSPRI_SS2_3RD       0x00000200  // third priority
-#define ADC_SSPRI_SS1_2ND       0x00000010  // second priority
-#define ADC_SSPRI_SS0_1ST       0x00000000  // first priority
-#define ADC_PSSI_SS3            0x00000008  // SS3 Initiate
-#define ADC_SSCTL3_TS0          0x00000008  // 1st Sample Temp Sensor Select
-#define ADC_SSCTL3_IE0          0x00000004  // 1st Sample Interrupt Enable
-#define ADC_SSCTL3_END0         0x00000002  // 1st Sample is End of Sequence
-#define ADC_SSCTL3_D0           0x00000001  // 1st Sample Diff Input Select
-#define ADC_SSFIFO3_DATA_M      0x00000FFF  // Conversion Result Data mask
-#define ADC_PC_SR_M             0x0000000F  // ADC Sample Rate
-#define ADC_PC_SR_125K          0x00000001  // 125 ksps
-#define SYSCTL_RCGCGPIO_R4      0x00000010  // GPIO Port E Run Mode Clock
-                                            // Gating Control
-#define SYSCTL_RCGCGPIO_R3      0x00000008  // GPIO Port D Run Mode Clock
-                                            // Gating Control
-#define SYSCTL_RCGCGPIO_R1      0x00000002  // GPIO Port B Run Mode Clock
-                                            // Gating Control
-
-void DisableInterrupts(void); // Disable interrupts
-void EnableInterrupts(void);  // Enable interrupts
-long StartCritical (void);    // previous I bit, disable interrupts
-void EndCritical(long sr);    // restore I bit to previous value
-void WaitForInterrupt(void);  // low power mode
-
-// There are many choices to make when using the ADC, and many
-// different combinations of settings will all do basically the
-// same thing.  For simplicity, this function makes some choices
-// for you.  When calling this function, be sure that it does
-// not conflict with any other software that may be running on
-// the microcontroller.  Particularly, ADC0 sample sequencer 3
-// is used here because it only takes one sample, and only one
-// sample is absolutely needed.  Sample sequencer 3 generates a
-// raw interrupt when the conversion is complete, and it is then
-// promoted to an ADC0 controller interrupt.  Hardware Timer0A
-// triggers the ADC0 conversion at the programmed interval, and
-// software handles the interrupt to process the measurement
-// when it is complete.
-//
-// A simpler approach would be to use software to trigger the
-// ADC0 conversion, wait for it to complete, and then process the
-// measurement.
-//
 // This initialization function sets up the ADC according to the
 // following parameters.  Any parameters not explicitly listed
 // below are not modified:
-// Timer0A: enabled
-// Mode: 32-bit, down counting
-// One-shot or periodic: periodic
-// Interval value: programmable using 32-bit period
-// Sample time is busPeriod*period
 // Max sample rate: <=125,000 samples/second
 // Sequencer 0 priority: 1st (highest)
 // Sequencer 1 priority: 2nd
 // Sequencer 2 priority: 3rd
 // Sequencer 3 priority: 4th (lowest)
-// SS3 triggering event: Timer0A
+// SS3 triggering event: software trigger
 // SS3 1st sample source: programmable using variable 'channelNum' [0:11]
-// SS3 interrupts: enabled and promoted to controller
-void ADC_Open(unsigned int channelNum, uint32_t period){
-  volatile uint32_t delay;
-	
-  /* Turn on GPIO Port clocks */
+// SS3 interrupts: enabled but not promoted to controller
+void ADC_Open(uint32_t channelNum){ volatile uint32_t delay;
   switch(channelNum){             // 1) activate clock
     case 0:
     case 1:
@@ -114,21 +20,25 @@ void ADC_Open(unsigned int channelNum, uint32_t period){
     case 3:
     case 8:
     case 9:                       //    these are on GPIO_PORTE
-      SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R4; break;
+      SYSCTL_RCGCGPIO_R |= 0x10; 
+      while((SYSCTL_PRGPIO_R&0x10) != 0x10){};
+      break;
     case 4:
     case 5:
     case 6:
     case 7:                       //    these are on GPIO_PORTD
-      SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R3; break;
+      SYSCTL_RCGCGPIO_R |= 0x08;  
+      while((SYSCTL_PRGPIO_R&0x08) != 0x08){};
+      break;
     case 10:
     case 11:                      //    these are on GPIO_PORTB
-      SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1; break;
-    default: return;              //    0 to 11 are valid channels on the LM4F120
+      SYSCTL_RCGCGPIO_R |= 0x02;  
+      while((SYSCTL_PRGPIO_R&0x02) != 0x02){};
+      break;
+    default: return;              //    0 to 11 are valid channels on the LM4F120/TM4C123
   }
-  delay = SYSCTL_RCGCGPIO_R;      // 2) allow time for clock to stabilize
+  delay = SYSCTL_RCGCGPIO_R;      // extra time for clock to stabilize
   delay = SYSCTL_RCGCGPIO_R;
-	
-  /* Set direction, enable alternate function, enable pin, and enable analog as alternate function */
   switch(channelNum){
     case 0:                       //      Ain0 is on PE3
       GPIO_PORTE_DIR_R &= ~0x08;  // 3.0) make PE3 input
@@ -203,42 +113,37 @@ void ADC_Open(unsigned int channelNum, uint32_t period){
       GPIO_PORTB_AMSEL_R |= 0x20; // 6.11) enable analog functionality on PB5
       break;
   }
-  DisableInterrupts();
-	
-	/*Activate ADC and timer triggered mode */
-  SYSCTL_RCGCADC_R |= 0x01;     											// activate ADC0 
-  SYSCTL_RCGCTIMER_R |= 0x01;   											// activate timer0 
-  delay = SYSCTL_RCGCTIMER_R;   											// allow time to finish activating
-	TIMER0_CTL_R = 0x00;    	// disable timer0A during setup
-  TIMER0_CTL_R |= 0x20;   	// enable timer0A trigger to ADC
-  TIMER0_CFG_R = 0x04;      // configure for 16-bit (was 32) timer mode (datasheet p. 725, changing to 16-bit as per lab instructions, was 0x00)
-  TIMER0_TAMR_R = 0x02;   	// configure for periodic mode, default down-count settings
-  TIMER0_TAPR_R = 0;        // prescale value for trigger
-  TIMER0_TAILR_R = period-1;    // start value for trigger
-  TIMER0_IMR_R = 0x00;    	// disable all interrupts
-  TIMER0_CTL_R |= 0x01;   	// enable timer0A 32-b, periodic, no interrupts
-  ADC0_PC_R = 0x01;         													// configure for 125K samples/sec - this is max number (fine for us because we are going to 10k max)
-  ADC0_SSPRI_R = 0x3210;    													// sequencer 0 is highest, sequencer 3 is lowest
-  ADC0_ACTSS_R &= ~0x08;   												  	// disable sample sequencer 3
-  ADC0_EMUX_R = (ADC0_EMUX_R&0xFFFF0FFF)+0x5000; 			// timer trigger event
-  ADC0_SSMUX3_R = channelNum;													// input source
-  ADC0_SSCTL3_R = 0x06;          											// set flag and end                       
-  ADC0_IM_R |= 0x08;             											// enable SS3 interrupts
-  ADC0_ACTSS_R |= 0x08;         									  	// enable sample sequencer 3
-  NVIC_PRI4_R = (NVIC_PRI4_R&0xFFFF00FF)|0x00004000;  // priority 2
-  NVIC_EN0_R = 1<<17;              										// enable interrupt 17 in NVIC
-	EnableInterrupts();  			// don't want to do this here
+  SYSCTL_RCGCADC_R |= 0x0001;   // 7) activate ADC0 
+//  while((SYSCTL_PRADC_R&0x0001) != 0x0001){};   // good code, but not yet implemented in simulator
+  delay = SYSCTL_RCGCADC_R;         // extra time for clock to stabilize
+  delay = SYSCTL_RCGCADC_R;         // extra time for clock to stabilize
+  delay = SYSCTL_RCGCADC_R;         // extra time for clock to stabilize
+  delay = SYSCTL_RCGCADC_R;
+  ADC0_PC_R &= ~0xF;              // 9) clear max sample rate field
+  ADC0_PC_R |= 0x1;               //    configure for 125K samples/sec
+  ADC0_SSPRI_R = 0x3210;          // 10) Sequencer 3 is lowest priority
+  ADC0_ACTSS_R &= ~0x0008;        // 11) disable sample sequencer 3
+  ADC0_EMUX_R &= ~0xF000;         // 12) seq3 is software trigger
+  ADC0_SSMUX3_R &= ~0x000F;       // 13) clear SS3 field
+  ADC0_SSMUX3_R += channelNum;    //     set channel
+  ADC0_SSCTL3_R = 0x0006;         // 14) no TS0 D0, yes IE0 END0
+  ADC0_IM_R &= ~0x0008;           // 15) disable SS3 interrupts
+  ADC0_ACTSS_R |= 0x0008;         // 16) enable sample sequencer 3
 }
 
-AddIndexFifo(ADC, FIFOSIZE, unsigned short, FIFOSUCCESS, FIFOFAIL);
-
-void ADC0Seq3_Handler(void){
-  ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
-	ADCFifo_Put(ADC0_SSFIFO3_R);
-}
-
-unsigned short ADC_In(void){
-	unsigned short ADC_data;
-	while(ADCFifo_Get(&ADC_data) == FIFOFAIL){};
-	return(ADC_data);
+//------------ADC0_InSeq3------------
+// Busy-wait Analog to digital conversion
+// Input: none
+// Output: 12-bit result of ADC conversion
+unsigned long ADC_In(void){ 
+	long status;
+	status = StartCritical();
+	uint32_t result;
+  ADC0_PSSI_R = 0x0008;            // 1) initiate SS3
+  while((ADC0_RIS_R&0x08)==0){};   // 2) wait for conversion done
+    // if you have an A0-A3 revision number, you need to add an 8 usec wait here
+  result = ADC0_SSFIFO3_R&0xFFF;   // 3) read result
+  ADC0_ISC_R = 0x0008;             // 4) acknowledge completion
+	EndCritical(status);
+  return result;
 }

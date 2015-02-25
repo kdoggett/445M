@@ -4,8 +4,8 @@
 
 void Debug_Port_Init(void){
 	volatile unsigned long delay;
-	SYSCTL_RCGC2_R |= 0x14;     			// activate Port C/E
-	delay = SYSCTL_RCGC2_R;						// settle
+	SYSCTL_RCGCGPIO_R |= 0x14;     			// activate Port C/E
+	delay = SYSCTL_RCGCGPIO_R;						// settle
 	GPIO_PORTC_AFSEL_R &= ~0xF0;  		// Disable alt
 	GPIO_PORTE_AFSEL_R &= ~0x0F;    	// Disable alt
 	GPIO_PORTC_AMSEL_R &= ~0xF0;  		// Disable analog

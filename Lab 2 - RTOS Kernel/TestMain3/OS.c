@@ -43,7 +43,8 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 	status = StartCritical();
 	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
 	if(threadNum == 0){
-		tcbs[0].next = firstTCB;		
+		tcbs[0].next = firstTCB;
+		tcbs[0].prev = firstTCB;		
 	}
 	else{
 		tcbs[threadNum - 1].next = &tcbs[threadNum];
