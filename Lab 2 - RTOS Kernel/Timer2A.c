@@ -1,6 +1,6 @@
-// Timer0A.c
+// Timer2A.c
 // Runs on LM4F120/TM4C123
-// Use Timer0A in periodic mode to request interrupts at a particular
+// Use Timer2A in periodic mode to request interrupts at a particular
 // period.
 // Daniel Valvano
 // September 11, 2013
@@ -38,8 +38,8 @@ void WaitForInterrupt(void);  // low power mode
 void (*PeriodicTask)(void);   // user function
 
 
-// ***************** Timer0A_Init ****************
-// Activate TIMER0 interrupts to run user task periodically
+// ***************** Timer2A_Init ****************
+// Activate TIMER2 interrupts to run user task periodically
 // Inputs:  task is a pointer to a user function
 //          period in units (1/clockfreq), 32 bits
 // Outputs: none

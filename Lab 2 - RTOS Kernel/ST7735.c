@@ -813,44 +813,115 @@ void static pushColor(uint16_t color) {
   writedata((uint8_t)color);
 }
 
+#define	LEFT_COLUMN		0
+#define	RIGHT_COLUMN	15
+#define	LINE_ONE			0
+#define LINE_TWO			2
+#define	LINE_THREE		4
+#define LINE_FOUR			6
+#define	LINE_FIVE			9
+#define	LINE_SIX			11
+#define	LINE_SEVEN		13
+#define	LINE_EIGHT		15
+#define	TEXT_COLOR		ST7735_YELLOW
+#define	BG_COLOR			ST7735_BLACK
+
+uint8_t *previousString = NULL;
+long previousValue = 0;
+
+
 //-----------ST7735_Message--------------
 //Draws a string and long value one one of the two split screens
-void ST7735_Message(int screen,int line,char *string,long value){
-	
-	if(screen == 1){
-		if(line == 1){
-		ST7735_DrawString(0, 0, string, ST7735_RED);
-		ST7735_SetCursor(10, 0);
-		ST7735_OutUDec(value);
-		}
-		else if(line == 2){
-			ST7735_DrawString(0, 3, string, ST7735_RED);
-			ST7735_SetCursor(10, 3);
+//Each logically seperate screen contains four lines
+//Used for interaction with the CLI
+
+void ST7735_Message(int screen,int line,char *string,long value){	
+	if(screen == 0){
+		if(line == 0){
+			ST7735_DrawString(LEFT_COLUMN,LINE_ONE,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_ONE,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_ONE);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_ONE);
+			ST7735_SetTextColor(TEXT_COLOR);
 			ST7735_OutUDec(value);
 		}
+		else if(line == 1){
+			ST7735_DrawString(LEFT_COLUMN,LINE_TWO,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_TWO,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_TWO);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_TWO);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);
+		}
+		else if(line == 2){
+			ST7735_DrawString(LEFT_COLUMN,LINE_THREE,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_THREE,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_THREE);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_THREE);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);		
+		}
 		else if(line == 3){
-			ST7735_DrawString(0, 6, string, ST7735_RED);
-			ST7735_SetCursor(10, 6);
+			ST7735_DrawString(LEFT_COLUMN,LINE_FOUR,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_FOUR,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_FOUR);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_FOUR);
+			ST7735_SetTextColor(TEXT_COLOR);
 			ST7735_OutUDec(value);		
 		}
 	}
-	else if(screen == 2){
-		if(line == 1){
-		ST7735_DrawString(0, 9, string, ST7735_RED);
-		ST7735_SetCursor(10, 9);
-		ST7735_OutUDec(value);	
-		}			
-		else if(line == 2){
-			ST7735_DrawString(0, 12, string, ST7735_RED);	
-			ST7735_SetCursor(10, 12);
-			ST7735_OutUDec(value);
+	else if(screen == 1){
+		if(line == 0){
+			ST7735_DrawString(LEFT_COLUMN,LINE_FIVE,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_FIVE,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_FIVE);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_FIVE);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);	
 		}
-		else if (line == 3){
-			ST7735_DrawString(0, 15, string, ST7735_RED);	
-			ST7735_SetCursor(10, 15);
-			ST7735_OutUDec(value);
+		else if(line == 1){
+			ST7735_DrawString(LEFT_COLUMN,LINE_SIX,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_SIX,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_SIX);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_SIX);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);	
+		}
+		else if(line == 2){
+			ST7735_DrawString(LEFT_COLUMN,LINE_SEVEN,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_SEVEN,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_SEVEN);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_SEVEN);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);		
+		}
+		else if(line == 3){
+			ST7735_DrawString(LEFT_COLUMN,LINE_EIGHT,previousString,BG_COLOR);
+			ST7735_DrawString(LEFT_COLUMN,LINE_EIGHT,string,TEXT_COLOR);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_EIGHT);
+			ST7735_SetTextColor(BG_COLOR);
+			ST7735_OutUDec(previousValue);
+			ST7735_SetCursor(RIGHT_COLUMN,LINE_EIGHT);
+			ST7735_SetTextColor(TEXT_COLOR);
+			ST7735_OutUDec(value);		
 		}
 	}
+	
+	previousString = string;
 }
 
 

@@ -65,7 +65,7 @@ void Thread4c(void){
   for(;;){
 		PE2_DIO2 ^= 0x04;       // heartbeat
     Count3++;
-		//OS_Sleep(10);
+		OS_Sleep(10);
   }
 }
 
@@ -80,7 +80,7 @@ void BounceWait(void){ int i;
 }
 void BackgroundThread5c(void){   // called when Select button pushed
 	PC6_DIO6 ^= 0x40;
-  //NumCreated += OS_AddThread(&BounceWait,128,6); 
+  NumCreated += OS_AddThread(&BounceWait,128,6); 
 }
       
 int main(void){   // Testmain3
@@ -93,7 +93,7 @@ int main(void){   // Testmain3
   NumCreated += OS_AddThread(&Thread2c,128,2); 
   NumCreated += OS_AddThread(&Thread3c,128,3); 
 	NumCreated += OS_AddThread(&Thread4c,128,4); 
-  //NumCreated += OS_AddThread(&BounceWait,128,6); 
+  NumCreated += OS_AddThread(&BounceWait,128,6); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }

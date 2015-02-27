@@ -35,21 +35,27 @@ void StartOS(void);
 
 int threadNum = 0;
 int threadMaxed = 0;
-tcb *firstTCB = &tcbs[0];
-tcb *previousTCB;
 
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
+// Successfully add thread to linked list
 	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
-	if(threadNum == 0){
-		tcbs[0].next = firstTCB;
-		tcbs[0].prev = firstTCB;		
+	
+	/* Check next thread condition */
+	if(threadNum == 0){ tcbs[threadNum].next = &tcbs[0];}		// Last thread will always point to the first thread.
+	else{ 
+		tcbs[threadNum - 1].next = &tcbs[threadNum];					// Make sure second to last thread points to last thread now, and last thread loops back
+		tcbs[threadNum].next = &tcbs[0];
 	}
-	else{
-		tcbs[threadNum - 1].next = &tcbs[threadNum];
-		tcbs[threadNum].next = firstTCB;
+	/******************************/
+	/* Check previous thread condition */
+	if(threadNum == 0) { tcbs[threadNum].prev = &tcbs[0];}	// If there is one one thread in system, then previous is same as next otherwise previous points to thread before it
+	else { 
+		tcbs[threadNum].prev = &tcbs[threadNum - 1];
+		tcbs[0].prev = &tcbs[threadNum];
 	}
+	/***********************************/
 	tcbs[threadNum].sleep = 0;
 	tcbs[threadNum].priority = priority;
 	Stacks[threadNum][stackSize-1] = 0x01000000;   // thumb bit
@@ -67,8 +73,21 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
   Stacks[threadNum][stackSize-13] = 0x07070707;  // R7
   Stacks[threadNum][stackSize-14] = 0x06060606;  // R6
   Stacks[threadNum][stackSize-15] = 0x05050505;  // R5
-  Stacks[threadNum][stackSize-16] = 0x04040404;  // R4
+  Stacks[threadNum][stackSize-16] = 0x04040404;  // R4	
+// Sort Linked List based off of priorites
 	threadNum++;
+	uint16_t threadIndex = 0;
+	tcb *firstThread = &tcbs[0];
+	tcb *lastThread =  &tcbs[threadNum-1];	
+	while(firstThread->next != lastThread) {
+		if(firstThread->priority > firstThread->next->priority) {
+			firstThread->prev->next = firstThread->next;
+			firstThread->next->prev = firstThread->prev;
+			firstThread->prev = firstThread->next;
+			firstThread->next = firstThread->next->next;
+		}
+		firstThread = firstThread->next;
+	}
 	EndCritical(status);
 	return threadMaxed;
 }
@@ -79,7 +98,8 @@ void OS_Init(void){
 	Timer2A_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
-  NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7
+  NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6
+	NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0xFF00FFFF)|0x00E00000; // priority 7
 }
 	
 void OS_Launch(unsigned long theTimeSlice){
@@ -140,9 +160,11 @@ void OS_bSignal(Sema4Type *semaPt){
 
 void (*SW1Task)(void);
 
-int OS_AddSW1Task(void(*task)(void), unsigned long priority){     
+int OS_AddSW1Task(void(*task)(void), unsigned long priority){ 
+	volatile unsigned long delay;
 	SW1Task = task;
   SYSCTL_RCGCGPIO_R |= 0x00000020; // (a) activate clock for port F
+	delay = SYSCTL_RCGC2_R;						// settle
   GPIO_PORTF_DIR_R &= ~0x10;    // (c) make PF4 in (built-in button)
   GPIO_PORTF_AFSEL_R &= ~0x10;  //     disable alt funct on PF4
   GPIO_PORTF_DEN_R |= 0x10;     //     enable digital I/O on PF4   
@@ -169,30 +191,38 @@ int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long 
 }
 
 void OS_Sleep(unsigned long sleepTime){
+	DisableInterrupts();
 	RunPt->sleep = sleepTime;
+	EnableInterrupts();
+	SysTick_Handler();
 }
 void OS_Kill(void){
 	DisableInterrupts();
-	tcb *prevThread = RunPt->prev;		//Define nextThread as thread that current thread is poiting to
-	prevThread->next = RunPt->next;				//Thread prior to current thread now points to current thread's next
-	RunPt = RunPt->next;
+	RunPt->prev->next = RunPt->next;
+	RunPt->next->prev = RunPt->prev;
 	EnableInterrupts();
-	PendSV_Handler();
+	SysTick_Handler();
 }
+
+void OS_MailBox_Init(void){}
+void OS_Fifo_Init(unsigned long size){}
+int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
+unsigned long OS_Time(void){ unsigned long time;
+	DisableInterrupts();
+	time = NVIC_ST_CURRENT_R;
+	EnableInterrupts();
+	return time;
+}
+unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){}
 	
 /*---------- Future OS Functions -----------*/
 
 unsigned long OS_Id(void){}
-int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
-void OS_Fifo_Init(unsigned long size){}
 int OS_Fifo_Put(unsigned long data){}
 unsigned long OS_Fifo_Get(void){}
 long OS_Fifo_Size(void){}
-void OS_MailBox_Init(void){}
 void OS_MailBox_Send(unsigned long data){}
 unsigned long OS_MailBox_Recv(void){}
-unsigned long OS_Time(void){}
-unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){}
 void OS_ClearMsTime(void){}
 unsigned long OS_MsTime(void){}
 

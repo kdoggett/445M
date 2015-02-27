@@ -1,4 +1,4 @@
-// Timer0A.h
+// Timer2A.h
 // Runs on LM4F120/TM4C123
 // Use Timer0A in periodic mode to request interrupts at a particular
 // period.

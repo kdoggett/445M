@@ -3,7 +3,11 @@
 #include "tm4c123gh6pm.h"
 #include <stdint.h>
 #include "pins.h"
+#include "ST7735.h"
 #include "Timer2A.h"
+
+void Timer3A_Init(unsigned long period);
+#define TIMER3A_PERIOD	8000000
 
 /*--------- TCB Stucture ---------*/
 
@@ -89,13 +93,16 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 		firstThread = firstThread->next;
 	}
 	EndCritical(status);
-	return threadMaxed;
+	return 1;
 }
 
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
+	Debug_Port_Init();
+	ST7735_InitR(INITR_REDTAB);
 	Timer2A_Init();
+	Timer3A_Init(TIMER3A_PERIOD);
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6
@@ -111,7 +118,7 @@ void OS_Launch(unsigned long theTimeSlice){
 
 int count = 0;
 void SysTick_Handler(){
-	PE3_DIO3 ^= 0x08;
+	DIO0 ^= BIT0;
 	if(RunPt->next->sleep > 0) {
 		RunPt->sleep = RunPt->sleep - 1;
 		RunPt = RunPt->next;
@@ -181,7 +188,12 @@ int OS_AddSW1Task(void(*task)(void), unsigned long priority){
 	return 1;
 }
 
+unsigned long previousTime = 0;
+
 void GPIOPortF_Handler(void){
+	DIO3 ^= BIT3;
+	GPIO_PORTF_ICR_R = 0x10;
+	previousTime = TIMER3_TAR_R;
 	(*SW1Task)();	
 }
 	
@@ -212,15 +224,30 @@ unsigned long OS_Time(void){ unsigned long time;
 }
 unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){}
 	
-/*---------- Future OS Functions -----------*/
+void OS_ClearMsTime(void){
+	TIMER3_TAR_R = 0;
+}
 
-unsigned long OS_Id(void){}
-int OS_Fifo_Put(unsigned long data){}
+unsigned long OS_MsTime(void){
+	DisableInterrupts();
+	DIO4 ^= BIT4;
+	unsigned long elapsedTime;
+	elapsedTime = TIMER3_TAR_R - previousTime;
+	EnableInterrupts();
+	return 21;
+}
+
+
+
 unsigned long OS_Fifo_Get(void){}
-long OS_Fifo_Size(void){}
+int OS_Fifo_Put(unsigned long data){}
 void OS_MailBox_Send(unsigned long data){}
 unsigned long OS_MailBox_Recv(void){}
-void OS_ClearMsTime(void){}
-unsigned long OS_MsTime(void){}
+	
+	
+/*---------- Future OS Functions -----------*/
+
+unsigned long OS_Id(void){return 0;}
+long OS_Fifo_Size(void){}
 
 

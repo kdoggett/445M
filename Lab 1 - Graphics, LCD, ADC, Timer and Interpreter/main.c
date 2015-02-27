@@ -87,10 +87,10 @@ int main(void){
 	UART_Init();
 	PortF_Init();
 	ADC_Open(4, 80000000);
-	//ST7735_InitR(INITR_REDTAB);
+	ST7735_InitR(INITR_REDTAB);
 	
 	UART_OutString("UART works\n\n");		//LCD is working
-	//ST7735_Message(0,0,"Screen works",1);
+	ST7735_Message(0,0,"Screen works",1);
 	
 	/********* PROCEDURE ONE - I/O Redirect & Intepreter 
 	Description: The I/O is redirect in UART.c when we copy data in the software FIFO to the hardware (UART0 register)
@@ -140,9 +140,9 @@ int main(void){
 	while(1){
 		
 		/******* INTERPRETER */
-		while(RxFifo_Size() == 0){};					//temp way to see if we have a command (will get much more sophisticated in lab 2)
-		UART_InString(command,COMMAND_MAX);		//get the command from the UART console
-		ProcessCommand(command);							//submit the command for parsing and interpretation
+//		while(RxFifo_Size() == 0){};					//temp way to see if we have a command (will get much more sophisticated in lab 2)
+//		UART_InString(command,COMMAND_MAX);		//get the command from the UART console
+//		ProcessCommand(command);							//submit the command for parsing and interpretation
 		
 	}
 		
