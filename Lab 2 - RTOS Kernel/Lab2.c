@@ -34,10 +34,10 @@
 
 
 int main(void){
-	mainMain();
+	//mainMain();
 	//testMain1();  	//complete, removed
 	//testMain2();		//complete, removed
-	//testMain3();		//switch debounce, OS_Kill(), OS_Sleep()
+	testMain3();		//switch debounce, OS_Kill(), OS_Sleep()
 	//testMain4();
 	return 0;
 }

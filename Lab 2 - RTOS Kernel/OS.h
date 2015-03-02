@@ -259,4 +259,8 @@ unsigned long OS_MsTime(void);
 // It is ok to limit the range of theTimeSlice to match the 24-bit SysTick
 void OS_Launch(unsigned long theTimeSlice);
 
+//*********tcbs_Init*****************
+//Initialize the tcbs so that all of them are marked empty
+void tcbs_Init (void) ;
+
 #endif

@@ -28,17 +28,11 @@
 #include <stdint.h>
 #include "tm4c123gh6pm.h"
 
-
-
-void DisableInterrupts(void); // Disable interrupts
-void EnableInterrupts(void);  // Enable interrupts
-long StartCritical (void);    // previous I bit, disable interrupts
-void EndCritical(long sr);    // restore I bit to previous value
 void WaitForInterrupt(void);  // low power mode
 void (*PeriodicTask)(void);   // user function
 
 
-// ***************** Timer0A_Init ****************
+// ***************** Timer2A_Init ****************
 // Activate TIMER0 interrupts to run user task periodically
 // Inputs:  task is a pointer to a user function
 //          period in units (1/clockfreq), 32 bits
@@ -52,20 +46,21 @@ void Timer2A_Init(void){ volatile unsigned long delay;
   TIMER2_TAPR_R = 0;            // 5) bus clock resolution
   TIMER2_ICR_R = 0x00000001;    // 6) clear TIMER2A timeout flag
   TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
-  NVIC_PRI4_R = (NVIC_PRI4_R&0x00FFFFFF)|0x80000000; // 8) priority 4
+  NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)|0x80000000; // 8) priority 4
 // interrupts enabled in the main program after all devices initialized
-// vector number 35, interrupt number 19
+// vector number 39, interrupt number 23
   NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
 }
 
-void Timer2A_Launch(void(*task)(void), uint32_t period) {
-	  PeriodicTask = task;          // user function
-		TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A
-	  TIMER2_TAILR_R = period-1;    // 4) reload value
-	  
+void Timer2A_Launch(void(*task)(void), uint32_t period, unsigned long priority) {
+	PeriodicTask = task;          // user function
+	TIMER2_TAILR_R = period-1;    // 4) reload value
+	priority = priority << 29;
+	NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)| priority; // 8) Timer priority is based off of priority of thread
+	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A  
 }
 
 void Timer2A_Handler(void){
   TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
-  (*PeriodicTask)();                // execute user task
+	(*PeriodicTask)();
 }

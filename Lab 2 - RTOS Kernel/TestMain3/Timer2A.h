@@ -31,6 +31,6 @@
 void Timer2A_Init(void);
 
 /* Run Timer2A Launch to enable Timer */
-void Timer2A_Launch(void(*task)(void), uint32_t period);
+void Timer2A_Launch(void(*task)(void), uint32_t, unsigned long);
 
 #endif // __TIMER0AINTS_H__

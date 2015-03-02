@@ -20,9 +20,10 @@ struct tcb{
 	char					blockedState;		// blocked status
 	char					empty;					// Tell whether or not a thread is empty.
 };
-typedef struct tcb tcb;			// typedef tcb as tcbType
-tcb tcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
-tcb *RunPt;									// pointer to running thread
+typedef struct tcb tcb;							// typedef tcb as tcbType
+tcb tcbs[NUMTHREADS];								// allocate memory for NUMTHREADS threads
+tcb periodictcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
+tcb *RunPt;													// pointer to running thread
 int32_t Stacks[NUMTHREADS][STACKSIZE];		// allocate memory on stack outside TCB
 
 /*--------- Set Up Initial Stack for Thread ---------*/
@@ -213,7 +214,7 @@ void GPIOPortF_Handler(void){
 }
 	
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){
-	Timer2A_Launch(task, period);
+	Timer2A_Launch(task, period, priority);
 	return 1;
 }
 

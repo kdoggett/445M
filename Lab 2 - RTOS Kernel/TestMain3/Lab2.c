@@ -43,7 +43,7 @@ void Thread2c(void){
   Count2 = 0;    
   Count5 = 0;    // Count2 + Count5 should equal Count1  
   NumCreated += OS_AddThread(&Thread5c,128,5); 
-  OS_AddPeriodicThread(&BackgroundThread1c,TIME_1MS,0); 
+  OS_AddPeriodicThread(&BackgroundThread1c,TIME_2MS,0); 
   for(;;){
 		DIO2 ^= BIT2;       // heartbeat
     OS_Wait(&Readyc);
@@ -104,12 +104,12 @@ int main(void){   // Testmain3
   OS_Init();           // initialize, disable interrupts
 // Count2 + Count5 should equal Count1
   NumCreated = 0 ;
-  //OS_AddSW1Task(&BackgroundThread5c,2);
-  //NumCreated += OS_AddThread(&Thread2c,128,2); 
+  OS_AddSW1Task(&BackgroundThread5c,2);
+  NumCreated += OS_AddThread(&Thread2c,128,2); 
   NumCreated += OS_AddThread(&Thread3c,128,3); 
 	NumCreated += OS_AddThread(&Thread4c,128,4); 
 	NumCreated += OS_AddThread(&ThreadAlivec,128,5);
-  //NumCreated += OS_AddThread(&BounceWait,128,6); 
+  NumCreated += OS_AddThread(&BounceWait,128,6); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }
