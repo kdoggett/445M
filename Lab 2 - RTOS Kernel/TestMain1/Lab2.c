@@ -3,6 +3,7 @@
 
 #include "OS.h"
 #include "tm4c123gh6pm.h"
+#include "pins.h"
 
 #define PE0  (*((volatile unsigned long *)0x40024004))
 #define PE1  (*((volatile unsigned long *)0x40024008))
@@ -36,7 +37,7 @@ unsigned long Count3;   // number of times thread3 loops
 void Thread1(void){
   Count1 = 0;          
   for(;;){
-    PE0 ^= 0x01;       // heartbeat
+    DIO1 ^= BIT1;       // heartbeat
     Count1++;
     OS_Suspend();      // cooperative multitasking
   }
@@ -44,7 +45,7 @@ void Thread1(void){
 void Thread2(void){
   Count2 = 0;          
   for(;;){
-    PE1 ^= 0x02;       // heartbeat
+    DIO2 ^= BIT2;       // heartbeat
     Count2++;
     OS_Suspend();      // cooperative multitasking
   }
@@ -52,7 +53,7 @@ void Thread2(void){
 void Thread3(void){
   Count3 = 0;          
   for(;;){
-    PE2 ^= 0x04;       // heartbeat
+    DIO3 ^= BIT3;       // heartbeat
     Count3++;
     OS_Suspend();      // cooperative multitasking
   }

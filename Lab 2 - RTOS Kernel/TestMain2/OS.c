@@ -1,4 +1,5 @@
 #include "OS.h"
+#include "pins.h"
 #include "PLL.h"
 #include "tm4c123gh6pm.h"
 #include <stdint.h>
@@ -82,6 +83,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
+	Debug_Port_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0xE0000000; // priority 7

@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+void ADC_Collect(uint32_t channelNum, uint32_t fs, void(*task)(unsigned long data));
+
 // This initialization function sets up the ADC according to the
 // following parameters.  Any parameters not explicitly listed
 // below are not modified:

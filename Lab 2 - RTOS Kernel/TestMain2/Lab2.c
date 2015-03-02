@@ -2,6 +2,7 @@
 // test2
 
 #include "OS.h"
+#include "pins.h"
 #include "tm4c123gh6pm.h"
 
 
@@ -37,27 +38,27 @@ void PortE_Init(void){ unsigned long volatile delay;
 void Thread1b(void){
   Count1 = 0;          
   for(;;){
-    PE0 ^= 0x01;       // heartbeat
+    DIO0 ^= BIT0;       // heartbeat
     Count1++;
   }
 }
 void Thread2b(void){
   Count2 = 0;          
   for(;;){
-    PE1 ^= 0x02;       // heartbeat
+    DIO1 ^= BIT1;       // heartbeat
     Count2++;
   }
 }
 void Thread3b(void){
   Count3 = 0;          
   for(;;){
-    PE2 ^= 0x04;       // heartbeat
+    DIO2 ^= BIT2;       // heartbeat
     Count3++;
   }
 }
 int main(void){  // Testmain2
   OS_Init();           // initialize, disable interrupts
-  PortE_Init();       // profile user threads
+  //PortE_Init();       // profile user threads
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread1b,128,1); 
   NumCreated += OS_AddThread(&Thread2b,128,2); 

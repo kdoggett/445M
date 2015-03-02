@@ -93,7 +93,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 		firstThread = firstThread->next;
 	}
 	EndCritical(status);
-	return 1;
+	return threadMaxed;
 }
 
 void OS_Init(void){
@@ -119,11 +119,15 @@ void OS_Launch(unsigned long theTimeSlice){
 int count = 0;
 void SysTick_Handler(){
 	DIO0 ^= BIT0;
-	if(RunPt->next->sleep > 0) {
+	if(RunPt->next->sleep == 0){NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;}
+	else if(RunPt->next->sleep > 0) {
 		RunPt->sleep = RunPt->sleep - 1;
 		RunPt = RunPt->next;
-	}
 		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	}
+	else{
+		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	}		
 }
 
 
@@ -213,8 +217,14 @@ void OS_Kill(void){
 	SysTick_Handler();
 }
 
-void OS_MailBox_Init(void){}
-void OS_Fifo_Init(unsigned long size){}
+//unsigned long DCcomponenet
+unsigned long mail;
+void OS_MailBox_Init(void){
+	mail = 0;
+}
+
+	
+
 int OS_AddSW2Task(void(*task)(void), unsigned long priority){}
 unsigned long OS_Time(void){ unsigned long time;
 	DisableInterrupts();
@@ -237,12 +247,48 @@ unsigned long OS_MsTime(void){
 	return 21;
 }
 
+unsigned long volatile *PutPt;
+unsigned long volatile *GetPt;
+unsigned long Fifo[128];
 
+void OS_Fifo_Init(unsigned long size){
+	PutPt = GetPt = &Fifo[0];	
+}
 
-unsigned long OS_Fifo_Get(void){}
-int OS_Fifo_Put(unsigned long data){}
-void OS_MailBox_Send(unsigned long data){}
-unsigned long OS_MailBox_Recv(void){}
+unsigned long OS_Fifo_Get(void){
+	unsigned long volatile *nextGetPt;
+	nextGetPt = GetPt + 1;
+	if(PutPt == GetPt){
+		return(0);
+	}
+//	if(nextGetPt == &Fifo[128]){
+//		GetPt = &Fifo[0];		
+//	}
+	return *GetPt;
+}
+
+int OS_Fifo_Put(unsigned long data){
+	unsigned long volatile *nextPutPt;
+	nextPutPt = PutPt + 1;
+	if(nextPutPt == GetPt){
+		return 0;
+	}
+	if(nextPutPt == &Fifo[128]){
+		nextPutPt = &Fifo[0];
+  }
+	else{
+		*(PutPt) = data;
+		PutPt = nextPutPt;
+		return 1;
+	}
+}
+
+void OS_MailBox_Send(unsigned long data){
+	mail = data;
+}
+unsigned long OS_MailBox_Recv(void){
+	return mail;
+}
 	
 	
 /*---------- Future OS Functions -----------*/

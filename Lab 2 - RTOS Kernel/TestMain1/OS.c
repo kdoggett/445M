@@ -1,6 +1,7 @@
 #include "OS.h"
 #include "tm4c123gh6pm.h"
 #include <stdint.h>
+#include "pins.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -80,6 +81,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
+	Debug_Port_Init();
 }
 	
 void OS_Launch(unsigned long theTimeSlice){

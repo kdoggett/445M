@@ -95,6 +95,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
+	Debug_Port_Init();
 	Timer2A_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
@@ -111,12 +112,16 @@ void OS_Launch(unsigned long theTimeSlice){
 
 int count = 0;
 void SysTick_Handler(){
-	PE3_DIO3 ^= 0x08;
-	if(RunPt->next->sleep > 0) {
-		RunPt->sleep = RunPt->sleep - 1;
+	DIO0 ^= BIT0;
+	if(RunPt->next->sleep == 0){NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;}
+	else if(RunPt->next->sleep > 0) {
 		RunPt = RunPt->next;
-	}
+		RunPt->sleep = RunPt->sleep - 1;
 		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	}
+	else{
+		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	}		
 }
 
 
@@ -181,7 +186,14 @@ int OS_AddSW1Task(void(*task)(void), unsigned long priority){
 	return 1;
 }
 
+int handler_count = 0;
+
 void GPIOPortF_Handler(void){
+	DisableInterrupts();
+	DIO3 ^= BIT3;
+	handler_count++;
+	GPIO_PORTF_ICR_R = 0x10;
+	EnableInterrupts();
 	(*SW1Task)();	
 }
 	

@@ -210,8 +210,8 @@ void Consumer(void){
 unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 unsigned long myId = OS_Id(); 
-  //ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
-//  NumCreated += OS_AddThread(&Display,128,0); 
+  ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
+  NumCreated += OS_AddThread(&Display,128,0); 
   while(NumSamples < RUNLENGTH) { 
     DIO2 = BIT2;
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
@@ -315,8 +315,8 @@ int mainMain(void){
 	ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
 
 //********initialize communication channels
-  //OS_MailBox_Init();
-  //OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
+  OS_MailBox_Init();
+  OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
 
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
@@ -327,7 +327,7 @@ int mainMain(void){
 // create initial foreground threads
 	NumCreated += OS_AddThread(&dummyThread,128,2);
 	//NumCreated += OS_AddThread(&Interpreter,128,2);  ----------
-  //NumCreated += OS_AddThread(&Consumer,128,1); 
+  NumCreated += OS_AddThread(&Consumer,128,1); 
   //NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
