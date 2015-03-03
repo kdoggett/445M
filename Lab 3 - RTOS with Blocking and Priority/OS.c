@@ -26,6 +26,7 @@ struct tcb{
 typedef struct tcb tcb;			// typedef tcb as tcbType
 tcb tcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
 tcb *RunPt;									// pointer to running thread
+tcb *NextThread;
 int32_t Stacks[NUMTHREADS][STACKSIZE];		// allocate memory on stack outside TCB
 
 // function definitions in osasm.s
@@ -118,16 +119,27 @@ void OS_Launch(unsigned long theTimeSlice){
 /*********** SYSTICK ***********/
 
 void SysTick_Handler(){
+	DisableInterrupts();
 	DIO0 ^= BIT0;
-	if(RunPt->next->sleep == 0){NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;}
-	else if(RunPt->next->sleep > 0) {
-		RunPt->sleep = RunPt->sleep - 1;
-		RunPt = RunPt->next;
-		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	NextThread = RunPt->next;
+	while(NextThread != RunPt) {
+		if(NextThread->sleep > 0){
+			NextThread->sleep--;
+		}
+		NextThread = NextThread->next;
 	}
-	else{
-		NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
-	}		
+	NextThread = RunPt->next;
+	while(NextThread != RunPt){
+		if(NextThread->sleep == 0){
+			break;
+		}
+		else{
+			NextThread = NextThread->next;
+		}
+	}
+	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
+	EnableInterrupts();
+
 }
 
 /*********** PERIODIC TASKS ***********/
