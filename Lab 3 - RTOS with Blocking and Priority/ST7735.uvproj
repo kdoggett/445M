@@ -411,11 +411,6 @@
               <FilePath>.\ADC.c</FilePath>
             </File>
             <File>
-              <FileName>Lab2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Lab2.c</FilePath>
-            </File>
-            <File>
               <FileName>OS.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\OS.c</FilePath>
@@ -506,6 +501,11 @@
               <FileName>Timer3A.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Timer3A.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\main.c</FilePath>
             </File>
           </Files>
         </Group>

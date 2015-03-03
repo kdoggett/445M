@@ -253,6 +253,9 @@ void ADC_Open_HardwareTrigger(unsigned int channelNum, uint32_t period){
   SYSCTL_RCGCADC_R |= 0x01;     											// activate ADC0 
   SYSCTL_RCGCTIMER_R |= 0x01;   											// activate timer0 
   delay = SYSCTL_RCGCTIMER_R;   											// allow time to finish activating
+	delay = SYSCTL_RCGCTIMER_R;   											// allow time to finish activating
+	delay = SYSCTL_RCGCTIMER_R;   											// allow time to finish activating
+	delay = SYSCTL_RCGCTIMER_R;   											// allow time to finish activating
 	TIMER0_CTL_R = 0x00;    	// disable timer0A during setup
   TIMER0_CTL_R |= 0x20;   	// enable timer0A trigger to ADC
   TIMER0_CFG_R = 0x04;      // configure for 16-bit (was 32) timer mode (datasheet p. 725, changing to 16-bit as per lab instructions, was 0x00)

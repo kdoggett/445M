@@ -61,8 +61,7 @@ void Timer2A_Init(void){ volatile unsigned long delay;
 void Timer2A_Launch(void(*task)(void), uint32_t period) {
 	  PeriodicTask = task;          // user function
 		TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A
-	  TIMER2_TAILR_R = period-1;    // 4) reload value
-	  
+	  TIMER2_TAILR_R = period-1;    // 4) reload value	  
 }
 
 void Timer2A_Handler(void){

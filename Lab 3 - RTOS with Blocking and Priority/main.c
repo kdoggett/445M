@@ -32,13 +32,15 @@
 #include <string.h> 
 #include "pins.h"
 
+#define MS_5_DELAY		40000
+#define	MS_10_DELAY		80000
+#define	MS_100_DELAY	800000
 
 int main(void){
 	mainMain();
-	//testMain1();  	//complete, removed
-	//testMain2();		//complete, removed
-	//testMain3();		//switch debounce, OS_Kill(), OS_Sleep()
-	//testMain4();
+	//testMain5();
+	//testMain6();
+	//testMain7();
 	return 0;
 }
 
@@ -298,12 +300,16 @@ unsigned long myId = OS_Id();
 //--------------end of Task 5-----------------------------
 
 
-unsigned long times[30] = {0};
-int i = 0;
-void dummyThread(void){     
+void Interpreter(void){
+	int i = 0;          
   for(;;){
-    DIO1 ^= BIT1;       // heartbeat 
-	}
+		DIO1 ^= BIT1;       // heartbeat
+		for(i = 0;i<MS_5_DELAY;i++){}
+  }
+}
+
+void SamplePID(void){
+	//dummy periodic thread
 }
 
 //*******************final user main DEMONTRATE THIS TO TA**********
@@ -315,19 +321,19 @@ int mainMain(void){
 	ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
 
 //********initialize communication channels
-  OS_MailBox_Init();
-  OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
+  //OS_MailBox_Init();
+  //OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
 
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
-//  OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
-  ADC_Open(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
-  OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
+  //OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
+  //ADC_Open(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
+  //OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
+	//OS_AddPeriodicThread(&SamplePID,PERIOD,1); //dummy periodic thread
   NumCreated = 0 ;
 // create initial foreground threads
-	NumCreated += OS_AddThread(&dummyThread,128,2);
-	//NumCreated += OS_AddThread(&Interpreter,128,2);  ----------
-  NumCreated += OS_AddThread(&Consumer,128,1); 
+	NumCreated += OS_AddThread(&Interpreter,128,2);
+  //NumCreated += OS_AddThread(&Consumer,128,1); 
   //NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
@@ -362,11 +368,11 @@ void Thread6(void){  // foreground thread
     Count1++; 
   }
 }
-//extern void Jitter(void);   // prints jitter information (write this) -------------
+void Jitter(void);   // prints jitter information to UART
 void Thread7(void){  // foreground thread
   UART_OutString("\n\rEE345M/EE380L, Lab 3 Preparation 2\n\r");
   OS_Sleep(5000);   // 10 seconds        
-  //Jitter();         // print jitter information ---------------
+  //Jitter();         // print jitter information, could not use this
   UART_OutString("\n\r\n\r");
   OS_Kill();
 }
