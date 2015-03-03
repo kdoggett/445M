@@ -19,9 +19,10 @@ struct tcb{
   struct tcb		*next;  				// linked-list pointer to next
 	struct tcb		*prev;					// linked-list pointer to previous
 	char 					ID;							// identifies thread
-	uint32_t			sleep;			// sleep status
+	uint32_t			sleep;					// sleep status
 	char					priority;				// priority of thread
 	char					blockedState;		// blocked status
+	char					empty;					// Tell whether or not a thread is empty.
 };
 typedef struct tcb tcb;			// typedef tcb as tcbType
 tcb tcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
@@ -40,24 +41,31 @@ void StartOS(void);
 
 int threadNum = 0;
 int threadMaxed = 0;
-
+tcb *firstThread = &tcbs[0];
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
+	int threadNum = 0;
+	while(tcbs[threadNum].empty == 1){
+		threadNum++;
+	}
+// Successfully add thread to linked list
 	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
 	
 	/* Check next thread condition */
-	if(threadNum == 0){ tcbs[threadNum].next = &tcbs[0];}		// Last thread will always point to the first thread.
+	if(threadNum == 0){ tcbs[0].next = &tcbs[0];}						// If there is only one thread, then the thread loops back to itself
 	else{ 
-		tcbs[threadNum - 1].next = &tcbs[threadNum];					// Make sure second to last thread points to last thread now, and last thread loops back
-		tcbs[threadNum].next = &tcbs[0];
+		tcbs[threadNum].next = &tcbs[0];					// Make sure second to last thread points to last thread now, and last thread loops back
+		tcbs[0].prev->next = &tcbs[threadNum];
 	}
+	/******************************/
 	/* Check previous thread condition */
-	if(threadNum == 0) { tcbs[threadNum].prev = &tcbs[0];}	// If there is one one thread in system, then previous is same as next otherwise previous points to thread before it
+	if(threadNum == 0) { tcbs[0].prev = &tcbs[0];}					// If there is one one thread in system, then previous loops back to intself
 	else { 
-		tcbs[threadNum].prev = &tcbs[threadNum - 1];
+		tcbs[threadNum].prev = tcbs[0].prev;					// Make sure Thread1->prev points to last thread, and LastThread->prev points to second to last thread
 		tcbs[0].prev = &tcbs[threadNum];
 	}
+	/***********************************/
 	tcbs[threadNum].sleep = 0;
 	tcbs[threadNum].priority = priority;
 	Stacks[threadNum][stackSize-1] = 0x01000000;   // thumb bit
@@ -77,19 +85,27 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
   Stacks[threadNum][stackSize-15] = 0x05050505;  // R5
   Stacks[threadNum][stackSize-16] = 0x04040404;  // R4	
 // Sort Linked List based off of priorites
-	threadNum++;
-	uint16_t threadIndex = 0;
-	tcb *firstThread = &tcbs[0];
-	tcb *lastThread =  &tcbs[threadNum-1];	
-	while(firstThread->next != lastThread) {
-		if(firstThread->priority > firstThread->next->priority) {
-			firstThread->prev->next = firstThread->next;
-			firstThread->next->prev = firstThread->prev;
-			firstThread->prev = firstThread->next;
-			firstThread->next = firstThread->next->next;
+	if(threadNum > 0) {
+		tcb *lastThread = &tcbs[threadNum];
+		while(firstThread->next != &tcbs[0]) {
+			if(lastThread->priority < firstThread->priority) {
+				firstThread->prev->next = firstThread->next;
+				firstThread->next->prev = firstThread->prev;
+				firstThread->prev = firstThread->next;
+				firstThread->next = firstThread->next->next;
+				firstThread->prev->next = firstThread;
+				firstThread->next->prev = firstThread;
+			}
+			firstThread = firstThread->next;
 		}
-		firstThread = firstThread->next;
+		firstThread = &tcbs[0];
+		for(int threadIndex = 0; threadIndex <= threadNum; threadIndex++) {
+			if(firstThread->priority > tcbs[threadIndex].priority){
+				firstThread = &tcbs[threadIndex];
+			}
+		}
 	}
+	tcbs[threadNum].empty = 1;
 	EndCritical(status);
 	return threadMaxed;
 }
@@ -101,7 +117,9 @@ void OS_Init(void){
   PLL_Init();                 // set processor clock to 80 MHz
 	Debug_Port_Init();
 	ST7735_InitR(INITR_REDTAB);
+	tcbs_Init();
 	Timer2A_Init();
+	Timer2B_Init();
 	Timer3A_Init(TIMER3A_PERIOD);
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
@@ -112,9 +130,17 @@ void OS_Init(void){
 void OS_Launch(unsigned long theTimeSlice){
 	NVIC_ST_RELOAD_R = theTimeSlice - 1;
 	NVIC_ST_CTRL_R = 0x07; // enable, core clock and interrupt arm
-	RunPt = &tcbs[0];       // thread 0 will run first
+	RunPt = firstThread;       // thread 0 will run first
 	StartOS();	
-}	
+}
+
+/*********** Initialize TCBs *********/
+void tcbs_Init(void){
+	int threadIndex;
+	for(threadIndex = 0; threadIndex < NUMTHREADS; threadIndex++) {
+		tcbs[threadIndex].empty = 0;
+	}
+}
 
 /*********** SYSTICK ***********/
 
@@ -145,21 +171,24 @@ void SysTick_Handler(){
 /*********** PERIODIC TASKS ***********/
 	
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){
-	Timer2A_Launch(task, period);
+	Timer2A_Launch(task, period, priority);
 	return 1;
 }
 
 /*********** SLEEP/KILL ***********/
 
 void OS_Sleep(unsigned long sleepTime){
+	DisableInterrupts();
 	RunPt->sleep = sleepTime;
+	EnableInterrupts();
+	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PENDSTSET;
 }
 void OS_Kill(void){
 	DisableInterrupts();
 	RunPt->prev->next = RunPt->next;
 	RunPt->next->prev = RunPt->prev;
 	EnableInterrupts();
-	SysTick_Handler();
+	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PENDSTSET;
 }	
 
 /*********** SWITCH TASKS ***********/
