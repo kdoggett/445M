@@ -68,16 +68,6 @@ long MaxJitter;             // largest time jitter between interrupts in usec
 unsigned long const JitterSize=JITTERSIZE;
 unsigned long JitterHistogram[JITTERSIZE]={0,};
 
-//void PortE_Init(void){ unsigned long volatile delay;
-//  SYSCTL_RCGC2_R |= 0x10;       // activate port E
-//  delay = SYSCTL_RCGC2_R;        
-//  delay = SYSCTL_RCGC2_R;         
-//  GPIO_PORTE_DIR_R |= 0x0F;    // make PE3_DIO3-0 output heartbeats
-//  GPIO_PORTE_AFSEL_R &= ~0x0F;   // disable alt funct on PE3_DIO3-0
-//  GPIO_PORTE_DEN_R |= 0x0F;     // enable digital I/O on PE3_DIO3-0
-//  GPIO_PORTE_PCTL_R = ~0x0000FFFF;
-//  GPIO_PORTE_AMSEL_R &= ~0x0F;;      // disable analog functionality on PF
-//}
 //------------------Task 1--------------------------------
 // 2 kHz sampling ADC channel 1, using software start trigger
 // background thread executed at 2 kHz
@@ -327,8 +317,8 @@ int mainMain(void){
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
   //OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
-  //ADC_Open(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
-  //OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
+  ADC_Open(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
+  OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
 	//OS_AddPeriodicThread(&SamplePID,PERIOD,1); //dummy periodic thread
   NumCreated = 0 ;
 // create initial foreground threads
@@ -337,6 +327,28 @@ int mainMain(void){
   //NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
+}
+
+/* JITTER */
+unsigned long periodicTaskA;
+unsigned long periodicTaskB;
+
+void jitter(void){
+	long jitter;                    // time between measured and expected, in us
+	unsigned long diff = OS_TimeDifference(periodicTaskA,periodicTaskB);
+	if(diff>PERIOD){
+		jitter = (diff-PERIOD+4)/8;  // in 0.1 usec
+	}else{
+		jitter = (PERIOD-diff+4)/8;  // in 0.1 usec
+	}
+	if(jitter > MaxJitter){
+		MaxJitter = jitter; // in usec
+	}
+	UART_OutString("Jitter: ");
+	UART_OutUDec(jitter);
+	UART_OutString("Max Jitter:");
+	UART_OutUDec(MaxJitter);
+	UART_OutChar('\n');
 }
 
 //******************* Lab 3 Preparation 2**********
@@ -368,11 +380,11 @@ void Thread6(void){  // foreground thread
     Count1++; 
   }
 }
-void Jitter(void);   // prints jitter information to UART
+
 void Thread7(void){  // foreground thread
   UART_OutString("\n\rEE345M/EE380L, Lab 3 Preparation 2\n\r");
   OS_Sleep(5000);   // 10 seconds        
-  //Jitter();         // print jitter information, could not use this
+  jitter();         // print jitter information, could not use this
   UART_OutString("\n\r\n\r");
   OS_Kill();
 }
@@ -380,6 +392,7 @@ void Thread7(void){  // foreground thread
 #define counts1us 10    // number of OS_Time counts per 1us
 void TaskA(void){       // called every {1000, 2990us} in background
   DIO1 = BIT1;      // debugging profile  
+	periodicTaskA = OS_Time();
   CountA++;
   PseudoWork(workA*counts1us); //  do work (100ns time resolution)
   DIO1 = BIT1;      // debugging profile  
@@ -387,6 +400,7 @@ void TaskA(void){       // called every {1000, 2990us} in background
 #define workB 250       // 250 us work in Task B
 void TaskB(void){       // called every pB in background
   DIO2 = BIT2;      // debugging profile  
+	periodicTaskB = OS_Time();
   CountB++;
   PseudoWork(workB*counts1us); //  do work (100ns time resolution)
   DIO2 = BIT2;      // debugging profile  

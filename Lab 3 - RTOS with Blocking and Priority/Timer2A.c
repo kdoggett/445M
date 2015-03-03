@@ -41,7 +41,7 @@ void Timer2A_Init(void){ volatile unsigned long delay;
   SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
 	delay = SYSCTL_RCGC2_R;						// settle
   TIMER2_CTL_R = 0x00000000;    // 1) disable TIMER2A during setup
-  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
+  TIMER2_CFG_R = 0x00000004;    // 2) configure for 32-bit mode
   TIMER2_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
   TIMER2_TAPR_R = 0;            // 5) bus clock resolution
   TIMER2_ICR_R = 0x00000001;    // 6) clear TIMER2A timeout flag
@@ -74,8 +74,8 @@ void Timer2B_Init(void){ volatile unsigned long delay;
   SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
 	delay = SYSCTL_RCGC2_R;						// settle
   TIMER2_CTL_R = 0x00000000;    // 1) disable TIMER2B during setup
-  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
-  TIMER2_TBMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
+  TIMER2_CFG_R = 0x00000004;    // 2) configure for 32-bit mode
+  TIMER2_TBMR_R = 0x02;   // 3) configure for periodic mode, default down-count settings
   TIMER2_TBPR_R = 0;            // 5) bus clock resolution
   TIMER2_ICR_R = 0x00000001;    // 6) clear TIMER2A timeout flag
   TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
