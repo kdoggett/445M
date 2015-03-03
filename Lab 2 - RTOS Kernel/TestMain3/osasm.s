@@ -29,6 +29,7 @@
         PRESERVE8
 
         EXTERN  RunPt            ; currently running thread
+		EXTERN	NextThread
         EXPORT  OS_DisableInterrupts
         EXPORT  OS_EnableInterrupts
 		EXPORT	OS_Suspend
@@ -86,9 +87,11 @@ PendSV_Handler                ; 1) Saves R0-R3,R12,LR,PC,PSR
     LDR     R0, =RunPt         ; 4) R0=pointer to RunPt, old thread
     LDR     R1, [R0]           ;    R1 = RunPt
     STR     SP, [R1]           ; 5) Save SP into TCB
-    LDR     R1, [R1,#4]        ; 6) R1 = RunPt->next
-    STR     R1, [R0]           ;    RunPt = R1
+    LDR     R0, =NextThread    ; 4) R0=pointer to RunPt, old thread
+    LDR     R1, [R0]           ;    R1 = RunPt
     LDR     SP, [R1]           ; 7) new thread SP; SP = RunPt->sp;
+	LDR		R2, =RunPt
+	STR		R1, [R2]
     POP     {R4-R11}           ; 8) restore regs r4-11
     CPSIE   I                  ; 9) tasks run with interrupts enabled
     BX      LR                 ; 10) restore R0-R3,R12,LR,PC,PSR
