@@ -93,18 +93,19 @@ static unsigned long n=3;   // 3, 4, or 5
 // outputs: none
 unsigned long DASoutput;
 void DAS(void){ 
-	DIO2 ^= BIT2;
 unsigned long input;  
-unsigned static long LastTime;  // time at previous ADC sample
+unsigned static long lastTime;  // time at previous ADC sample
 unsigned long thisTime;         // time at current ADC sample
 long jitter;                    // time between measured and expected, in us
   if(NumSamples < RUNLENGTH){   // finite time run
+		DIO1 ^= BIT1;
     input = ADC_In();           // channel set when calling ADC_Init
     thisTime = OS_Time();       // current time, 12.5 ns
     DASoutput = Filter(input);
     FilterWork++;        // calculation finished
     if(FilterWork>1){    // ignore timing of first interrupt
-      unsigned long diff = OS_TimeDifference(LastTime,thisTime);
+      //unsigned long diff = OS_TimeDifference(lastTime,thisTime);
+			unsigned long diff = thisTime - lastTime;
       if(diff>PERIOD){
         jitter = (diff-PERIOD+4)/8;  // in 0.1 usec
       }else{
@@ -118,7 +119,7 @@ long jitter;                    // time between measured and expected, in us
       }
       JitterHistogram[jitter]++; 
     }
-    LastTime = thisTime;
+    lastTime = thisTime;
   }
 }
 //--------------end of Task 1-----------------------------
@@ -129,7 +130,7 @@ long jitter;                    // time between measured and expected, in us
 // foreground treads run for 2 sec and die
 // ***********ButtonWork*************
 void ButtonWork(void){
-unsigned long myId = OS_Id(); 
+//unsigned long myId = OS_Id(); 
 	DIO6 ^= BIT6;
   ST7735_Message(1,0,"NumCreated =",NumCreated); 
   OS_Sleep(50);     // set this to sleep for 50msec
@@ -144,12 +145,12 @@ unsigned long myId = OS_Id();
 // Adds another foreground task
 // background threads execute once and return
 void SW1Push(void){
-	if(OS_MsTime() > 20){ // debounce
-		DIO5 ^= BIT5;
+	//if(OS_MsTime() > 20){ // debounce
+		//DIO2 ^= BIT2;
 		OS_AddThread(&ButtonWork,128,4);
 		NumCreated++; 
-	}
-	OS_ClearMsTime();  // at least 20ms between touches
+	//}
+	//OS_ClearMsTime();  // at least 20ms between touches
 }
 
 //************SW2Push*************
@@ -157,12 +158,13 @@ void SW1Push(void){
 // Adds another foreground task
 // background threads execute once and return
 void SW2Push(void){
-  if(OS_MsTime() > 20){ // debounce
-    if(OS_AddThread(&ButtonWork,100,4)){
-      NumCreated++; 
-    }
-    OS_ClearMsTime();  // at least 20ms between touches
-  }
+  //if(OS_MsTime() > 20){ // debounce
+  //  if(OS_AddThread(&ButtonWork,100,4)){
+		OS_AddThread(&ButtonWork,128,4);
+		NumCreated++;  
+  //  }
+  //  OS_ClearMsTime();  // at least 20ms between touches
+ // }
 }
 //--------------end of Task 2-----------------------------
 
@@ -293,13 +295,9 @@ unsigned long myId = OS_Id();
 void Interpreter(void){
 	int i = 0;          
   for(;;){
-		DIO1 ^= BIT1;       // heartbeat
+		DIO5 ^= BIT5;       // heartbeat
 		for(i = 0;i<MS_5_DELAY;i++){}
   }
-}
-
-void SamplePID(void){
-	//dummy periodic thread
 }
 
 //*******************final user main DEMONTRATE THIS TO TA**********
@@ -316,8 +314,8 @@ int mainMain(void){
 
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
-  //OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
-  ADC_Open(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
+  OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
+  ADC_Open_SoftwareTrigger(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
   OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
 	//OS_AddPeriodicThread(&SamplePID,PERIOD,1); //dummy periodic thread
   NumCreated = 0 ;

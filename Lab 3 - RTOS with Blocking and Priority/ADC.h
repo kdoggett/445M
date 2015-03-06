@@ -13,7 +13,7 @@ void ADC_Collect(uint32_t channelNum, uint32_t fs, void(*task)(unsigned long dat
 // SS3 triggering event: software trigger
 // SS3 1st sample source: programmable using variable 'channelNum' [0:7]
 // SS3 interrupts: enabled but not promoted to controller
-void ADC_Open(uint32_t channelNum);
+void ADC_Open_SoftwareTrigger(uint32_t channelNum);
 
 //------------ADC_In------------
 // Busy-wait Analog to digital conversion

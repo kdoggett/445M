@@ -12,7 +12,7 @@
 // SS3 triggering event: software trigger
 // SS3 1st sample source: programmable using variable 'channelNum' [0:11]
 // SS3 interrupts: enabled but not promoted to controller
-void ADC_Open(uint32_t channelNum){ volatile uint32_t delay;
+void ADC_Open_SoftwareTrigger(uint32_t channelNum){ volatile uint32_t delay;
   switch(channelNum){             // 1) activate clock
     case 0:
     case 1:
