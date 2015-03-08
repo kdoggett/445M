@@ -105,7 +105,7 @@ long jitter;                    // time between measured and expected, in us
     FilterWork++;        // calculation finished
     if(FilterWork>1){    // ignore timing of first interrupt
       //unsigned long diff = OS_TimeDifference(lastTime,thisTime);
-			unsigned long diff = thisTime - lastTime;
+			unsigned long diff = lastTime - thisTime;
       if(diff>PERIOD){
         jitter = (diff-PERIOD+4)/8;  // in 0.1 usec
       }else{
@@ -146,7 +146,6 @@ void ButtonWork(void){
 // background threads execute once and return
 void SW1Push(void){
 	//if(OS_MsTime() > 20){ // debounce
-		//DIO2 ^= BIT2;
 		OS_AddThread(&ButtonWork,128,4);
 		NumCreated++; 
 	//}
@@ -186,6 +185,7 @@ void SW2Push(void){
 // inputs:  none
 // outputs: none
 void Producer(unsigned long data){  
+	DIO3 ^= BIT3;
   if(NumSamples < RUNLENGTH){   // finite time run
     NumSamples++;               // number of samples
     if(OS_Fifo_Put(data) == 0){ // send to consumer
@@ -205,7 +205,7 @@ unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 unsigned long myId = OS_Id(); 
   ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
-  NumCreated += OS_AddThread(&Display,128,0); 
+//  NumCreated += OS_AddThread(&Display,128,0); 
   while(NumSamples < RUNLENGTH) { 
     DIO2 = BIT2;
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
@@ -230,7 +230,6 @@ unsigned long data,voltage;
   while(NumSamples < RUNLENGTH) { 
     data = OS_MailBox_Recv();
     voltage = 3000*data/4095;               // calibrate your device so voltage is in mV
-    DIO3 = BIT3;
     ST7735_Message(0,2,"v(mV) =",voltage);  
   } 
   OS_Kill();  // done
@@ -309,8 +308,8 @@ int mainMain(void){
 	ST7735_DrawFastHLine(0, 80, 128, ST7735_YELLOW);
 
 //********initialize communication channels
-  //OS_MailBox_Init();
-  //OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
+  OS_MailBox_Init();
+  OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
 
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
@@ -321,7 +320,7 @@ int mainMain(void){
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
-  //NumCreated += OS_AddThread(&Consumer,128,1); 
+  NumCreated += OS_AddThread(&Consumer,128,1); 
   //NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes

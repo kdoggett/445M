@@ -280,14 +280,14 @@ void (*producer)(unsigned long data);
 
 void ADC_Collect(uint32_t channelNum, uint32_t fs, void(*task)(unsigned long data)) {
 	int period = 80000000 / fs;
-	ADC_Open_HardwareTrigger(5,period);
+	ADC_Open_HardwareTrigger(channelNum,period);
 	producer = task;
 }
 
 
 
-void ADC0Seq3_Handler(void){
-  ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
+void ADC0Seq2_Handler(void){
+  ADC0_ISC_R = 0x04;          // acknowledge ADC sequence 3 completion
 	producer(ADC0_SSFIFO3_R);
 }
 
