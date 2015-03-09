@@ -148,14 +148,14 @@ void SysTick_Handler(){
 	DisableInterrupts();
 	DIO0 ^= BIT0;
 	NextThread = RunPt->next;
-	while(NextThread != RunPt) {
+	while(NextThread != RunPt->next) {
 		if(NextThread->sleep > 0){
 			NextThread->sleep--;
 		}
 		NextThread = NextThread->next;
 	}
 	NextThread = RunPt->next;
-	while(NextThread != RunPt){
+	while(NextThread != RunPt->next){
 		if(NextThread->sleep == 0){
 			break;
 		}
@@ -187,6 +187,7 @@ void OS_Kill(void){
 	DisableInterrupts();
 	RunPt->prev->next = RunPt->next;
 	RunPt->next->prev = RunPt->prev;
+	RunPt->empty = 0;
 	EnableInterrupts();
 	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PENDSTSET;
 }	

@@ -56,7 +56,7 @@ void Timer2A_Launch(void(*task)(void), uint32_t period, unsigned long priority) 
 	TIMER2_TAILR_R = period-1;    // 4) reload value
 	priority = priority << 29;
 	NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)| priority; // 8) Timer priority is based off of priority of thread
-	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A  
+	TIMER2_CTL_R |= TIMER_CTL_TAEN;    // 10) enable TIMER2A  
 }
 
 void Timer2A_Handler(void){
@@ -89,7 +89,7 @@ void Timer2B_Launch(void(*task)(void), uint32_t period, unsigned long priority) 
 	TIMER2_TBILR_R = period-1;    // 4) reload value
 	priority = priority << 5;
 	NVIC_PRI6_R = (NVIC_PRI6_R&0xFFFFFF00)| priority; // 8) Timer priority is based off of priority of thread
-	TIMER2_CTL_R = 0x00000001;    // 10) enable TIMER2A  
+	TIMER2_CTL_R |= TIMER_CTL_TBEN;    // 10) enable TIMER2A  
 }
 
 void Timer2B_Handler(void){

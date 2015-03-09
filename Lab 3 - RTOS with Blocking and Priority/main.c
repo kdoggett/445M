@@ -205,7 +205,7 @@ unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 unsigned long myId = OS_Id(); 
   ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
-//  NumCreated += OS_AddThread(&Display,128,0); 
+  NumCreated += OS_AddThread(&Display,128,0); 
   while(NumSamples < RUNLENGTH) { 
     DIO2 = BIT2;
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
@@ -316,7 +316,6 @@ int mainMain(void){
   OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
   ADC_Open_SoftwareTrigger(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
   OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
-	//OS_AddPeriodicThread(&SamplePID,PERIOD,1); //dummy periodic thread
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
