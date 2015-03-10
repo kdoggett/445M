@@ -28,14 +28,10 @@
 #include "stdint.h"
 
 /* Initialize Timer2A */
-void Timer2A_Init(void);
+void Timer2_Init(void);
 
 /* Run Timer2A Launch to enable Timer */
 void Timer2A_Launch(void(*task)(void), uint32_t, unsigned long);
-
-
-/* Initialize Timer2B */
-void Timer2B_Init(void);
 
 /* Run Timer2B Launch to enable Timer */
 void Timer2B_Launch(void(*task)(void), uint32_t, unsigned long);
