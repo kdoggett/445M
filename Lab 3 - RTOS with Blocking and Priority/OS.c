@@ -46,25 +46,32 @@ tcb *firstThread = &tcbs[0];
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
+	int threadCount = 0;
 	int threadNum = 0;
+	for(int i = 0; i < NUMTHREADS; i++){
+		if(tcbs[i].empty == 1){
+			threadCount++;
+		}
+	}
 	while(tcbs[threadNum].empty == 1){
 		threadNum++;
+		if(threadNum > NUMTHREADS) {break;}
 	}
 // Successfully add thread to linked list
 	tcbs[threadNum].sp = &Stacks[threadNum][stackSize-16]; // thread stack pointer
 	
 	/* Check next thread condition */
-	if(threadNum == 0){ tcbs[0].next = &tcbs[0];}						// If there is only one thread, then the thread loops back to itself
+	if(threadCount == 0){ tcbs[0].next = &tcbs[0];}						// If there is only one thread, then the thread loops back to itself
 	else{ 
-		tcbs[threadNum].next = &tcbs[0];					// Make sure second to last thread points to last thread now, and last thread loops back
-		tcbs[0].prev->next = &tcbs[threadNum];
+		tcbs[threadNum].next = firstThread;					// Make sure second to last thread points to last thread now, and last thread loops back
+		firstThread->prev->next = &tcbs[threadNum];
 	}
 	/******************************/
 	/* Check previous thread condition */
-	if(threadNum == 0) { tcbs[0].prev = &tcbs[0];}					// If there is one one thread in system, then previous loops back to intself
+	if(threadCount == 0) { tcbs[0].prev = &tcbs[0];}					// If there is one one thread in system, then previous loops back to intself
 	else { 
-		tcbs[threadNum].prev = tcbs[0].prev;					// Make sure Thread1->prev points to last thread, and LastThread->prev points to second to last thread
-		tcbs[0].prev = &tcbs[threadNum];
+		tcbs[threadNum].prev = firstThread->prev;					// Make sure Thread1->prev points to last thread, and LastThread->prev points to second to last thread
+		firstThread->prev = &tcbs[threadNum];
 	}
 	/***********************************/
 	tcbs[threadNum].sleep = 0;
@@ -86,18 +93,22 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
   Stacks[threadNum][stackSize-15] = 0x05050505;  // R5
   Stacks[threadNum][stackSize-16] = 0x04040404;  // R4	
 // Sort Linked List based off of priorites
-	if(threadNum > 0) {
+	if(threadCount > 2) {
 		tcb *lastThread = &tcbs[threadNum];
-		while(firstThread->next != &tcbs[0]) {
-			if(lastThread->priority < firstThread->priority) {
-				firstThread->prev->next = firstThread->next;
-				firstThread->next->prev = firstThread->prev;
-				firstThread->prev = firstThread->next;
-				firstThread->next = firstThread->next->next;
-				firstThread->prev->next = firstThread;
-				firstThread->next->prev = firstThread;
+		tcb *nextThread = firstThread->next;
+		while(nextThread != firstThread) {													// Iterate through all threads to apply sorting algorithm
+			if(lastThread->priority <= firstThread->priority) {				// If last thread is higher priority, then break while loop, technically the threads are in order
+				break;
 			}
-			firstThread = firstThread->next;
+			if(lastThread->priority < nextThread->priority){
+				lastThread->prev->next = firstThread;
+				firstThread->prev = lastThread->prev;
+				lastThread->next = nextThread;
+				nextThread->prev->next = lastThread;
+				lastThread->prev = nextThread->prev;		
+				nextThread->prev = lastThread;
+			}
+			nextThread = nextThread->next;
 		}
 		firstThread = &tcbs[0];
 		for(int threadIndex = 0; threadIndex <= threadNum; threadIndex++) {
