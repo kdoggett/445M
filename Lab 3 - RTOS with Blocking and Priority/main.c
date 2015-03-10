@@ -37,10 +37,10 @@
 #define	MS_100_DELAY	800000
 
 int main(void){
-	mainMain();
-	//testMain5();
-	//testMain6();
-	//testMain7();
+	//mainMain();
+	//Testmain5();
+	Testmain6();
+	//Testmain7();
 	return 0;
 }
 
@@ -131,7 +131,6 @@ long jitter;                    // time between measured and expected, in us
 // ***********ButtonWork*************
 void ButtonWork(void){
 //unsigned long myId = OS_Id(); 
-	DIO6 ^= BIT6;
   ST7735_Message(1,0,"NumCreated =",NumCreated); 
   OS_Sleep(50);     // set this to sleep for 50msec
   ST7735_Message(1,1,"PIDWork     =",PIDWork);
@@ -201,18 +200,17 @@ void Display(void);
 // inputs:  none
 // outputs: none
 void Consumer(void){ 
+	DIO2 ^= BIT2;
 unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
-unsigned long myId = OS_Id(); 
-   ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
-//  NumCreated += OS_AddThread(&Display,128,0); 
-  while(NumSamples < RUNLENGTH) { 
-    DIO2 = BIT2;
+//unsigned long myId = OS_Id(); 
+  ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz
+  NumCreated += OS_AddThread(&Display,128,0); 
+  while(NumSamples < RUNLENGTH) {
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
       data = OS_Fifo_Get();    // get from producer
       x[t] = data;             // real part is 0 to 4095, imaginary part is 0
     }
-    DIO2 = BIT2;
     cr4_fft_64_stm32(y,x,64);  // complex FFT of last 64 ADC values
     DCcomponent = y[0]&0xFFFF; // Real part at frequency 0, imaginary part should be zero
     OS_MailBox_Send(DCcomponent); // called every 2.5ms*64 = 160ms
@@ -252,7 +250,7 @@ short Actuator;
 void PID(void){ 
 	DIO4 ^= BIT4;
 short err;  // speed error, range -100 to 100 RPM
-unsigned long myId = OS_Id(); 
+//unsigned long myId = OS_Id(); 
   PIDWork = 0;
   IntTerm = 0;
   PrevError = 0;
@@ -291,15 +289,93 @@ unsigned long myId = OS_Id();
 //    i.e., x[], y[] 
 //--------------end of Task 5-----------------------------
 
+#define COMMAND_MAX	100
 
-void Interpreter(void){
-	int i = 0;          
+char command[COMMAND_MAX];
+
+void ProcessCommand(char *command){
+	char commandType[COMMAND_MAX];
+	unsigned long ADCValue;
+// Initialize commandType buffer
+	for(int j = 0; j < COMMAND_MAX; j++) {
+		commandType[j] = 0;
+	}
+	uint32_t i = 0;
+	char commandNum;
+	while(1) {
+		if(command[i] == ' ')
+		{
+			break;
+		}
+		else if(command[i] == NULL) {
+			break;
+		}
+		else {
+			commandType[i] = command[i];
+		}
+		i++;
+	}
+	if (strcmp(commandType,"ADC") == 0){
+		commandType[i] = ' ';
+		i++;
+		commandNum = 1;
+	}
+	if (strcmp(commandType,"Timer") == 0){
+		commandType[i] = ' ';
+		i++;
+		commandNum = 2;
+	}
+	if (strcmp(commandType,"LCD") == 0){
+		commandType[i] = ' ';
+		i++;
+		commandNum = 3;
+	}
+	if (strcmp(commandType,"UserTask") == 0){
+		commandType[i] = ' ';
+		i++;
+		commandNum = 4;		
+	}
+		switch(commandNum){
+			case 1:
+				ADCValue = ADC_In();
+				UART_OutUDec(ADCValue);
+				break;
+			case 2:
+				while(command[i] != 0){
+					commandType[i] = command[i];
+					i++;
+				}
+				UART_OutString(commandType);
+				break;
+			case 3:
+				while(command[i] != 0){
+					commandType[i] = command[i];
+					i++;
+				}
+				UART_OutString(commandType);
+				break;
+			case 4:
+				while(command[i] != NULL){
+					commandType[i] = command[i];
+					i++;
+				}
+				OS_AddThread(&ButtonWork,128,4);
+				break;				
+			default:
+				UART_OutString(commandType);
+				break;
+		}
+		i = 0;
+}
+
+void Interpreter(void){        
   for(;;){
 		DIO5 ^= BIT5;       // heartbeat
-		UART_OutString("UART works\n\n");		//LCD is working
-		for(i = 0;i<MS_100_DELAY;i++){}
-  }
-}
+		while(RxFifo_Size() == 0 && UART_InChar() != 0x0D){};
+			UART_InString(command,COMMAND_MAX);
+			ProcessCommand(command);
+		}
+ }
 
 //*******************final user main DEMONTRATE THIS TO TA**********
 int mainMain(void){ 
@@ -322,7 +398,7 @@ int mainMain(void){
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
-//  NumCreated += OS_AddThread(&Consumer,128,1); 
+  NumCreated += OS_AddThread(&Consumer,128,1); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }
@@ -368,21 +444,25 @@ unsigned long Count1;   // number of times thread1 loops
 // Input: amount of work in 100ns units (free free to change units
 // Output: none
 void PseudoWork(unsigned short work){
+	DIO4 ^= BIT4;
 unsigned short startTime;
   startTime = OS_Time();    // time in 100ns units
-  while(OS_TimeDifference(startTime,OS_Time()) <= work){} 
+	unsigned short test = OS_TimeDifference(startTime,OS_Time());
+//  while(OS_TimeDifference(startTime,OS_Time()) <= work){} 
 }
 void Thread6(void){  // foreground thread
   Count1 = 0;          
   for(;;){
+		DIO3 = BIT3;
     Count1++; 
+		DIO3 = 0;
   }
 }
 
 void Thread7(void){  // foreground thread
   UART_OutString("\n\rEE345M/EE380L, Lab 3 Preparation 2\n\r");
   OS_Sleep(5000);   // 10 seconds        
-  jitter();         // print jitter information, could not use this
+  jitter();         // print jitter information
   UART_OutString("\n\r\n\r");
   OS_Kill();
 }
@@ -393,7 +473,7 @@ void TaskA(void){       // called every {1000, 2990us} in background
 	periodicTaskA = OS_Time();
   CountA++;
   PseudoWork(workA*counts1us); //  do work (100ns time resolution)
-  DIO1 = BIT1;      // debugging profile  
+  DIO1 = 0;      // debugging profile  
 }
 #define workB 250       // 250 us work in Task B
 void TaskB(void){       // called every pB in background
@@ -401,7 +481,7 @@ void TaskB(void){       // called every pB in background
 	periodicTaskB = OS_Time();
   CountB++;
   PseudoWork(workB*counts1us); //  do work (100ns time resolution)
-  DIO2 = BIT2;      // debugging profile  
+  DIO2 = 0;      // debugging profile  
 }
 
 int Testmain5(void){       // Testmain5 Lab 3
@@ -409,8 +489,8 @@ int Testmain5(void){       // Testmain5 Lab 3
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread6,128,2); 
   NumCreated += OS_AddThread(&Thread7,128,1); 
-  OS_AddPeriodicThread(&TaskA,TIME_1MS,0,0);           // 1 ms, higher priority
-  OS_AddPeriodicThread(&TaskB,2*TIME_1MS,1,1);         // 2 ms, lower priority
+  OS_AddPeriodicThread(&TaskA,TIME_1MS,0,1);           // 1 ms, higher priority
+  OS_AddPeriodicThread(&TaskB,2*TIME_1MS,1,2);         // 2 ms, lower priority
  
   OS_Launch(TIME_2MS); // 2ms, doesn't return, interrupts enabled in here
   return 0;             // this never executes
@@ -448,24 +528,28 @@ void OutputThread(void){  // foreground thread
 }
 void Wait1(void){  // foreground thread
   for(;;){
+		DIO1 ^= BIT1;
     OS_Wait(&s);    // three threads waiting
     WaitCount1++; 
   }
 }
 void Wait2(void){  // foreground thread
   for(;;){
+		DIO2 ^= BIT2;
     OS_Wait(&s);    // three threads waiting
     WaitCount2++; 
   }
 }
 void Wait3(void){   // foreground thread
   for(;;){
+		DIO4 ^= BIT4;
     OS_Wait(&s);    // three threads waiting
     WaitCount3++; 
   }
 }
 void Signal1(void){      // called every 799us in background
   if(SignalCount1<MAXCOUNT){
+		DIO5 ^= BIT5;
     OS_Signal(&s);
     SignalCount1++;
   }
@@ -473,12 +557,14 @@ void Signal1(void){      // called every 799us in background
 // edit this so it changes the periodic rate
 void Signal2(void){       // called every 1111us in background
   if(SignalCount2<MAXCOUNT){
+		DIO6 ^= BIT6;
     OS_Signal(&s);
     SignalCount2++;
   }
 }
 void Signal3(void){       // foreground
   while(SignalCount3<98*MAXCOUNT){
+		DIO7 ^= BIT7;
     OS_Signal(&s);
     SignalCount3++;
   }
@@ -501,8 +587,8 @@ int Testmain6(void){      // Testmain6  Lab 3
   WaitCount2 = 0;     // number of times s is successfully waited on
   WaitCount3 = 0;	  // number of times s is successfully waited on
   OS_InitSemaphore(&s,0);	 // this is the test semaphore
-  OS_AddPeriodicThread(&Signal1,(799*TIME_1MS)/1000,0,0);   // 0.799 ms, higher priority
-  OS_AddPeriodicThread(&Signal2,(1111*TIME_1MS)/1000,1,1);  // 1.111 ms, lower priority
+  OS_AddPeriodicThread(&Signal1,(799*TIME_1MS)/1000,0,1);   // 0.799 ms, higher priority
+  OS_AddPeriodicThread(&Signal2,(1111*TIME_1MS)/1000,1,2);  // 1.111 ms, lower priority
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread6,128,6);    	// idle thread to keep from crashing
   NumCreated += OS_AddThread(&OutputThread,128,2); 	// results output thread

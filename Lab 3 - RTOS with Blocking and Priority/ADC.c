@@ -265,7 +265,7 @@ void ADC_Open_HardwareTrigger(unsigned int channelNum, uint32_t period){
   ADC0_SSCTL3_R = 0x06;          // set flag and end                       
   ADC0_IM_R |= 0x08;             // enable SS3 interrupts
   ADC0_ACTSS_R |= 0x08;          // enable sample sequencer 3
-  NVIC_PRI4_R = (NVIC_PRI4_R&0xFFFF00FF)|0x00004000; //priority 2
+  NVIC_PRI4_R = (NVIC_PRI4_R&0xFFFF00FF)|0x0000A000; //priority 5
   NVIC_EN0_R = 1<<17;              // enable interrupt 17 in NVIC
   EnableInterrupts();
 }

@@ -144,11 +144,7 @@
             <UsePdscDebugDescription>0</UsePdscDebugDescription>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
-<<<<<<< HEAD
           <TargetSelection>3</TargetSelection>
-=======
-          <TargetSelection>2</TargetSelection>
->>>>>>> f6ca823b3f66adb718da1d34afd27cf7882797bc
           <SimDlls>
             <CpuDll></CpuDll>
             <CpuDllArguments></CpuDllArguments>

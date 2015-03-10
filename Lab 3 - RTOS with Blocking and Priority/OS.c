@@ -212,14 +212,15 @@ void OS_Kill(void){
 
 /*********** TIME ***********/
 	
-unsigned long OS_Time(void){ unsigned long time;
-	DisableInterrupts();
-	time = NVIC_ST_CURRENT_R;
-	EnableInterrupts();
+unsigned long OS_Time(void){ 
+	unsigned long time = NVIC_ST_CURRENT_R;
 	return time;
 }
 
-unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){}
+unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){
+	unsigned long diff = stop - start;
+	return diff;
+}
 	
 void OS_ClearMsTime(void){
 	TIMER3_TAR_R = 0;
@@ -227,7 +228,6 @@ void OS_ClearMsTime(void){
 
 unsigned long OS_MsTime(void){
 	DisableInterrupts();
-	DIO4 ^= BIT4;
 	unsigned long elapsedTime;
 	EnableInterrupts();
 	return 21;

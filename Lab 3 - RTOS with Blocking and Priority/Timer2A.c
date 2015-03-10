@@ -29,7 +29,8 @@
 #include "tm4c123gh6pm.h"
 
 void WaitForInterrupt(void);  // low power mode
-void (*PeriodicTask)(void);   // user function
+void (*PeriodicTaskA)(void);   // user function
+void (*PeriodicTaskB)(void);   // user function
 
 
 // ***************** Timer2A_Init ****************
@@ -52,7 +53,7 @@ void Timer2A_Init(void){ volatile unsigned long delay;
 }
 
 void Timer2A_Launch(void(*task)(void), uint32_t period, unsigned long priority) {
-	PeriodicTask = task;          // user function
+	PeriodicTaskA = task;          // user function
 	TIMER2_TAILR_R = period-1;    // 4) reload value
 	priority = priority << 29;
 	NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)| priority; // 8) Timer priority is based off of priority of thread
@@ -61,7 +62,7 @@ void Timer2A_Launch(void(*task)(void), uint32_t period, unsigned long priority) 
 
 void Timer2A_Handler(void){
   TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
-	(*PeriodicTask)();
+	(*PeriodicTaskA)();
 }
 
 
@@ -74,18 +75,18 @@ void Timer2B_Init(void){ volatile unsigned long delay;
   SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
 	delay = SYSCTL_RCGC2_R;						// settle
   TIMER2_CTL_R = 0x00000000;    // 1) disable TIMER2B during setup
-  TIMER2_CFG_R = 0x00000004;    // 2) configure for 32-bit mode
+  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
   TIMER2_TBMR_R = 0x02;   // 3) configure for periodic mode, default down-count settings
   TIMER2_TBPR_R = 0;            // 5) bus clock resolution
   TIMER2_ICR_R = 0x00000001;    // 6) clear TIMER2A timeout flag
   TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
 // interrupts enabled in the main program after all devices initialized
 // vector number 39, interrupt number 23
-  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
+  NVIC_EN0_R = 1<<24;           // 9) enable IRQ 24 in NVIC
 }
 
 void Timer2B_Launch(void(*task)(void), uint32_t period, unsigned long priority) {
-	PeriodicTask = task;          // user function
+	PeriodicTaskB = task;          // user function
 	TIMER2_TBILR_R = period-1;    // 4) reload value
 	priority = priority << 5;
 	NVIC_PRI6_R = (NVIC_PRI6_R&0xFFFFFF00)| priority; // 8) Timer priority is based off of priority of thread
@@ -94,5 +95,5 @@ void Timer2B_Launch(void(*task)(void), uint32_t period, unsigned long priority) 
 
 void Timer2B_Handler(void){
   TIMER2_ICR_R = TIMER_ICR_TBTOCINT;// acknowledge timer2A timeout
-	(*PeriodicTask)();
+	(*PeriodicTaskB)();
 }
