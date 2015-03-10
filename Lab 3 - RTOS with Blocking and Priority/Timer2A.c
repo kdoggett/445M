@@ -38,18 +38,22 @@ void (*PeriodicTaskB)(void);   // user function
 // Inputs:  task is a pointer to a user function
 //          period in units (1/clockfreq), 32 bits
 // Outputs: none
-void Timer2A_Init(void){ volatile unsigned long delay;
+void Timer2_Init(void){ volatile unsigned long delay;
   SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
 	delay = SYSCTL_RCGC2_R;						// settle
-  TIMER2_CTL_R = 0x00000000;    // 1) disable TIMER2A during setup
-  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
-  TIMER2_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
-  TIMER2_TAPR_R = 0;            // 5) bus clock resolution
-  TIMER2_ICR_R = 0x00000001;    // 6) clear TIMER2A timeout flag
-  TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
+  TIMER2_CTL_R &= ~(TIMER_CTL_TAEN | TIMER_CTL_TBEN);    // 1) disable TIMER2A during setup
+  TIMER2_CFG_R = TIMER_CFG_16_BIT;    // 2) configure for 32-bit mode
+// Initialize Timer2A 
+	TIMER2_TAMR_R = TIMER_TAMR_TAMR_PERIOD;
+	TIMER2_IMR_R |= TIMER_IMR_TATOIM;			// arm timeout interrupt
+  TIMER2_ICR_R = TIMER_ICR_TATOCINT;    // 6) clear TIMER2A timeout flag
+// Initialize Timer2B 
+	TIMER2_TBMR_R = TIMER_TBMR_TBMR_PERIOD;
+	TIMER2_IMR_R |= TIMER_IMR_TBTOIM;			// arm timeout interrupt
+  TIMER2_ICR_R = TIMER_ICR_TBTOCINT;
 // interrupts enabled in the main program after all devices initialized
 // vector number 39, interrupt number 23
-  NVIC_EN0_R = 1<<23;           // 9) enable IRQ 23 in NVIC
+	NVIC_EN0_R = (0x01 << 23) + (0x01 << 24);
 }
 
 void Timer2A_Launch(void(*task)(void), uint32_t period, unsigned long priority) {
@@ -63,26 +67,6 @@ void Timer2A_Launch(void(*task)(void), uint32_t period, unsigned long priority) 
 void Timer2A_Handler(void){
   TIMER2_ICR_R = TIMER_ICR_TATOCINT;// acknowledge timer2A timeout
 	(*PeriodicTaskA)();
-}
-
-
-// ***************** Timer2B_Init ****************
-// Activate TIMER0 interrupts to run user task periodically
-// Inputs:  task is a pointer to a user function
-//          period in units (1/clockfreq), 32 bits
-// Outputs: none
-void Timer2B_Init(void){ volatile unsigned long delay;
-  SYSCTL_RCGCTIMER_R |= 0x04;   // 0) activate timer2
-	delay = SYSCTL_RCGC2_R;						// settle
-  TIMER2_CTL_R = 0x00000000;    // 1) disable TIMER2B during setup
-  TIMER2_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
-  TIMER2_TBMR_R = 0x02;   // 3) configure for periodic mode, default down-count settings
-  TIMER2_TBPR_R = 0;            // 5) bus clock resolution
-  TIMER2_ICR_R = 0x00000001;    // 6) clear TIMER2A timeout flag
-  TIMER2_IMR_R = 0x00000001;    // 7) arm timeout interrupt
-// interrupts enabled in the main program after all devices initialized
-// vector number 39, interrupt number 23
-  NVIC_EN0_R = 1<<24;           // 9) enable IRQ 24 in NVIC
 }
 
 void Timer2B_Launch(void(*task)(void), uint32_t period, unsigned long priority) {

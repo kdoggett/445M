@@ -131,8 +131,7 @@ void OS_Init(void){
 	Debug_Port_Init();
 	ST7735_InitR(INITR_REDTAB);
 	tcbs_Init();
-	Timer2A_Init();
-	Timer2B_Init();
+	Timer2_Init();
 	Timer3A_Init(TIMER3A_PERIOD);
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
