@@ -37,9 +37,9 @@
 #define	MS_100_DELAY	800000
 
 int main(void){
-	//mainMain();
+	mainMain();
 	//Testmain5();
-	Testmain6();
+	//Testmain6();
 	//Testmain7();
 	return 0;
 }
@@ -289,6 +289,10 @@ short err;  // speed error, range -100 to 100 RPM
 //    i.e., x[], y[] 
 //--------------end of Task 5-----------------------------
 
+void UserWork(void){
+	UART_OutString("User Work\n");	
+}
+
 #define COMMAND_MAX	100
 
 char command[COMMAND_MAX];
@@ -359,7 +363,8 @@ void ProcessCommand(char *command){
 					commandType[i] = command[i];
 					i++;
 				}
-				OS_AddThread(&ButtonWork,128,4);
+				OS_AddSW1Task(&UserWork,0);
+				UART_OutString("\nTask Created\n");
 				break;				
 			default:
 				UART_OutString(commandType);
@@ -398,7 +403,7 @@ int mainMain(void){
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
-  NumCreated += OS_AddThread(&Consumer,128,1); 
+  //NumCreated += OS_AddThread(&Consumer,128,1); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }

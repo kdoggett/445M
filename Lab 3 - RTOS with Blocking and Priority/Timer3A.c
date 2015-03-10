@@ -4,7 +4,6 @@
 
 // ***************** Timer3A_Init ****************
 // Does not trigger interrupt, only used for general purpose timing
-// Used by OS_ClearMsTime() and OS_MsTime()
 void Timer3A_Init(unsigned long period){ volatile unsigned long delay;
   SYSCTL_RCGCTIMER_R |= 0x08;			// activate
 	delay = SYSCTL_RCGC2_R;					// settle

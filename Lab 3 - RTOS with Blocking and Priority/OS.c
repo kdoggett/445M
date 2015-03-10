@@ -124,10 +124,19 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 
 /*********** OS INIT/LAUNCH ***********/
 
+void ConsoleInit(void){
+	UART_OutString("\n-----------RTOS Interpreter-------------\n");
+	UART_OutString("Commands:\n");
+	UART_OutString("1. ADC\n");
+	UART_OutString("2. LDC\n");
+	UART_OutString("3. UserTask");	
+}
+
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
 	UART_Init();
+	ConsoleInit();
 	Debug_Port_Init();
 	ST7735_InitR(INITR_REDTAB);
 	tcbs_Init();
