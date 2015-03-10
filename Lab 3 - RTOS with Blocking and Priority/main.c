@@ -37,8 +37,8 @@
 #define	MS_100_DELAY	800000
 
 int main(void){
-	mainMain();
-	//Testmain5();
+	//mainMain();
+	Testmain5();
 	//Testmain6();
 	//Testmain7();
 	return 0;
@@ -104,8 +104,7 @@ long jitter;                    // time between measured and expected, in us
     DASoutput = Filter(input);
     FilterWork++;        // calculation finished
     if(FilterWork>1){    // ignore timing of first interrupt
-      //unsigned long diff = OS_TimeDifference(lastTime,thisTime);
-			unsigned long diff = lastTime - thisTime;
+      unsigned long diff = OS_TimeDifference(lastTime,thisTime);
       if(diff>PERIOD){
         jitter = (diff-PERIOD+4)/8;  // in 0.1 usec
       }else{

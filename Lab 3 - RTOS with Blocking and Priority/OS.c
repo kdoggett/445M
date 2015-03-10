@@ -136,7 +136,7 @@ void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
 	UART_Init();
-	ConsoleInit();
+	//ConsoleInit();
 	Debug_Port_Init();
 	ST7735_InitR(INITR_REDTAB);
 	tcbs_Init();
@@ -220,23 +220,25 @@ void OS_Kill(void){
 
 /*********** TIME ***********/
 	
-unsigned long OS_Time(void){ 
+int OS_Time(void){ 
 	unsigned long time = NVIC_ST_CURRENT_R;
 	return time;
 }
 
-unsigned long OS_TimeDifference(unsigned long start, unsigned long stop){
-	unsigned long diff = stop - start;
-	return diff;
+int OS_TimeDifference(unsigned long start, unsigned long stop){ int diff;
+	if (stop < start){
+		diff = !(stop - start) + 1;
+	}
+	else {diff = NVIC_ST_CURRENT_R - stop + start;}	
 }
 	
 void OS_ClearMsTime(void){
 	TIMER3_TAR_R = 0;
 }
 
-unsigned long OS_MsTime(void){
+int OS_MsTime(void){
 	DisableInterrupts();
-	unsigned long elapsedTime;
+	int elapsedTime;
 	EnableInterrupts();
 	return 21;
 }

@@ -223,7 +223,7 @@ unsigned long OS_MailBox_Recv(void);
 // The time resolution should be less than or equal to 1us, and the precision 32 bits
 // It is ok to change the resolution and precision of this function as long as 
 //   this function and OS_TimeDifference have the same resolution and precision 
-unsigned long OS_Time(void);
+int OS_Time(void);
 
 // ******** OS_TimeDifference ************
 // Calculates difference between two times
@@ -232,7 +232,7 @@ unsigned long OS_Time(void);
 // The time resolution should be less than or equal to 1us, and the precision at least 12 bits
 // It is ok to change the resolution and precision of this function as long as 
 //   this function and OS_Time have the same resolution and precision 
-unsigned long OS_TimeDifference(unsigned long start, unsigned long stop);
+int OS_TimeDifference(unsigned long start, unsigned long stop);
 
 // ******** OS_ClearMsTime ************
 // sets the system time to zero (from Lab 1)
@@ -247,7 +247,7 @@ void OS_ClearMsTime(void);
 // Outputs: time in ms units
 // You are free to select the time resolution for this function
 // It is ok to make the resolution to match the first call to OS_AddPeriodicThread
-unsigned long OS_MsTime(void);
+int OS_MsTime(void);
 
 //******** OS_Launch *************** 
 // start the scheduler, enable interrupts
