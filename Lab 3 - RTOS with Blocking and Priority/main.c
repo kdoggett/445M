@@ -204,8 +204,8 @@ void Consumer(void){
 unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 unsigned long myId = OS_Id(); 
-  ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
-  NumCreated += OS_AddThread(&Display,128,0); 
+   ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz ---------------
+//  NumCreated += OS_AddThread(&Display,128,0); 
   while(NumSamples < RUNLENGTH) { 
     DIO2 = BIT2;
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
@@ -250,6 +250,7 @@ short PrevError;   // previous error, RPM
 short Coeff[3];    // PID coefficients
 short Actuator;
 void PID(void){ 
+	DIO4 ^= BIT4;
 short err;  // speed error, range -100 to 100 RPM
 unsigned long myId = OS_Id(); 
   PIDWork = 0;
@@ -295,7 +296,8 @@ void Interpreter(void){
 	int i = 0;          
   for(;;){
 		DIO5 ^= BIT5;       // heartbeat
-		for(i = 0;i<MS_5_DELAY;i++){}
+		UART_OutString("UART works\n\n");		//LCD is working
+		for(i = 0;i<MS_100_DELAY;i++){}
   }
 }
 
@@ -313,14 +315,14 @@ int mainMain(void){
 
 //*******attach background tasks***********
   OS_AddSW1Task(&SW1Push,2);
-  OS_AddSW2Task(&SW2Push,2);  // add this line in Lab 3
+  OS_AddSW2Task(&SW2Push,2);
   ADC_Open_SoftwareTrigger(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
-  OS_AddPeriodicThread(&DAS,PERIOD,1); // 2 kHz real time sampling of PD3
+  OS_AddPeriodicThread(&DAS,PERIOD,1,0); // 2 kHz real time sampling of PD3		Timer2A
+//	OS_AddPeriodicThread(&PID,PERIOD,3,1);  // Timer2B
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
-  NumCreated += OS_AddThread(&Consumer,128,1); 
-  //NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
+//  NumCreated += OS_AddThread(&Consumer,128,1); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }
@@ -407,8 +409,8 @@ int Testmain5(void){       // Testmain5 Lab 3
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread6,128,2); 
   NumCreated += OS_AddThread(&Thread7,128,1); 
-  OS_AddPeriodicThread(&TaskA,TIME_1MS,0);           // 1 ms, higher priority
-  OS_AddPeriodicThread(&TaskB,2*TIME_1MS,1);         // 2 ms, lower priority
+  OS_AddPeriodicThread(&TaskA,TIME_1MS,0,0);           // 1 ms, higher priority
+  OS_AddPeriodicThread(&TaskB,2*TIME_1MS,1,1);         // 2 ms, lower priority
  
   OS_Launch(TIME_2MS); // 2ms, doesn't return, interrupts enabled in here
   return 0;             // this never executes
@@ -499,8 +501,8 @@ int Testmain6(void){      // Testmain6  Lab 3
   WaitCount2 = 0;     // number of times s is successfully waited on
   WaitCount3 = 0;	  // number of times s is successfully waited on
   OS_InitSemaphore(&s,0);	 // this is the test semaphore
-  OS_AddPeriodicThread(&Signal1,(799*TIME_1MS)/1000,0);   // 0.799 ms, higher priority
-  OS_AddPeriodicThread(&Signal2,(1111*TIME_1MS)/1000,1);  // 1.111 ms, lower priority
+  OS_AddPeriodicThread(&Signal1,(799*TIME_1MS)/1000,0,0);   // 0.799 ms, higher priority
+  OS_AddPeriodicThread(&Signal2,(1111*TIME_1MS)/1000,1,1);  // 1.111 ms, lower priority
   NumCreated = 0 ;
   NumCreated += OS_AddThread(&Thread6,128,6);    	// idle thread to keep from crashing
   NumCreated += OS_AddThread(&OutputThread,128,2); 	// results output thread

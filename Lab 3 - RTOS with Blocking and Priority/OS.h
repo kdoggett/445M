@@ -102,7 +102,7 @@ unsigned long OS_Id(void);
 // In lab 3, there will be up to four background threads, and this priority field 
 //           determines the relative priority of these four threads
 int OS_AddPeriodicThread(void(*task)(void), 
-   unsigned long period, unsigned long priority);
+   unsigned long period, unsigned long priority, int timerNumber);
 
 //******** OS_AddSW1Task *************** 
 // add a background task to run whenever the SW1 (PF4) button is pushed

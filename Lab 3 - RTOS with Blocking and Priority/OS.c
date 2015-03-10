@@ -5,6 +5,7 @@
 #include "pins.h"
 #include "ST7735.h"
 #include "Timer2A.h"
+#include "UART.h"
 
 void Timer3A_Init(unsigned long period);
 #define TIMER3A_PERIOD	8000000
@@ -115,11 +116,12 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
+	UART_Init();
 	Debug_Port_Init();
 	ST7735_InitR(INITR_REDTAB);
 	tcbs_Init();
 	Timer2A_Init();
-	//Timer2B_Init();
+	Timer2B_Init();
 	Timer3A_Init(TIMER3A_PERIOD);
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
@@ -170,8 +172,13 @@ void SysTick_Handler(){
 
 /*********** PERIODIC TASKS ***********/
 	
-int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority){
-	Timer2A_Launch(task, period, priority);
+int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority, int timerNumber){
+	if(timerNumber == 1){
+		Timer2A_Launch(task, period, priority);
+	}
+	else{
+		Timer2B_Launch(task, period, priority);	
+	}
 	return 1;
 }
 
