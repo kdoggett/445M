@@ -136,7 +136,7 @@ void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
 	UART_Init();
-	//ConsoleInit();
+	ConsoleInit();
 	Debug_Port_Init();
 	ST7735_InitR(INITR_REDTAB);
 	tcbs_Init();
@@ -165,18 +165,19 @@ void tcbs_Init(void){
 
 /*********** SYSTICK ***********/
 
-void SysTick_Handler(){
+void SysTick_Handler(){ tcb* LastThread;
 	DisableInterrupts();
 	DIO0 ^= BIT0;
 	NextThread = RunPt->next;
-	while(NextThread != RunPt->next) {
+	LastThread = NextThread->next;
+	while(NextThread != LastThread) {
 		if(NextThread->sleep > 0){
 			NextThread->sleep--;
 		}
 		NextThread = NextThread->next;
 	}
 	NextThread = RunPt->next;
-	while(NextThread != RunPt->next){
+	while(NextThread != LastThread){
 		if(NextThread->sleep == 0){
 			break;
 		}

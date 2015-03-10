@@ -37,8 +37,8 @@
 #define	MS_100_DELAY	800000
 
 int main(void){
-	//mainMain();
-	Testmain5();
+	mainMain();
+	//Testmain5();
 	//Testmain6();
 	//Testmain7();
 	return 0;
@@ -64,9 +64,10 @@ long x[64],y[64];         // input and output arrays for FFT
 //---------------------User debugging-----------------------
 unsigned long DataLost;     // data sent by Producer, but not received by Consumer
 long MaxJitter;             // largest time jitter between interrupts in usec
-#define JITTERSIZE 64
-unsigned long const JitterSize=JITTERSIZE;
-unsigned long JitterHistogram[JITTERSIZE]={0,};
+unsigned long JitterHistogram[50];
+//#define JITTERSIZE 64
+//unsigned long const JitterSize=JITTERSIZE;
+//unsigned long JitterHistogram[JITTERSIZE]={0,};
 
 //------------------Task 1--------------------------------
 // 2 kHz sampling ADC channel 1, using software start trigger
@@ -113,10 +114,10 @@ long jitter;                    // time between measured and expected, in us
       if(jitter > MaxJitter){
         MaxJitter = jitter; // in usec
       }       // jitter should be 0
-      if(jitter >= JitterSize){
-        jitter = JITTERSIZE-1;
-      }
-      JitterHistogram[jitter]++; 
+      //if(jitter >= JitterSize){
+        //jitter = JITTERSIZE-1;
+      //}
+      //JitterHistogram[jitter]++; 
     }
     lastTime = thisTime;
   }
@@ -144,7 +145,7 @@ void ButtonWork(void){
 // background threads execute once and return
 void SW1Push(void){
 	//if(OS_MsTime() > 20){ // debounce
-		OS_AddThread(&ButtonWork,128,4);
+		OS_AddThread(&ButtonWork,128,3);
 		NumCreated++; 
 	//}
 	//OS_ClearMsTime();  // at least 20ms between touches
@@ -411,6 +412,7 @@ int mainMain(void){
 unsigned long periodicTaskA;
 unsigned long periodicTaskB;
 
+int i = 0;
 void jitter(void){
 	long jitter;                    // time between measured and expected, in us
 	unsigned long diff = OS_TimeDifference(periodicTaskA,periodicTaskB);
@@ -421,6 +423,11 @@ void jitter(void){
 	}
 	if(jitter > MaxJitter){
 		MaxJitter = jitter; // in usec
+	}
+  JitterHistogram[i] = jitter; 
+	i++;
+	if(i == 50){
+		i = 0;
 	}
 	UART_OutString("Jitter: ");
 	UART_OutUDec(jitter);
@@ -464,8 +471,10 @@ void Thread6(void){  // foreground thread
 }
 
 void Thread7(void){  // foreground thread
+	DIO5 = BIT5;
   UART_OutString("\n\rEE345M/EE380L, Lab 3 Preparation 2\n\r");
-  OS_Sleep(5000);   // 10 seconds        
+  OS_Sleep(5000);   // 10 seconds  
+	DIO5 = 0;
   jitter();         // print jitter information
   UART_OutString("\n\r\n\r");
   OS_Kill();
