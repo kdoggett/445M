@@ -343,5 +343,3 @@ void OS_bSignal(Sema4Type *semaPt){
 
 unsigned long OS_Id(void){return 0;}
 long OS_Fifo_Size(void){}
-
-
