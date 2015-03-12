@@ -98,9 +98,9 @@ unsigned static long lastTime;  // time at previous ADC sample
 unsigned long thisTime;         // time at current ADC sample
 long jitter;                    // time between measured and expected, in us
   if(NumSamples < RUNLENGTH){   // finite time run
-		DIO1 ^= BIT1;
     input = ADC_In();           // channel set when calling ADC_Init
     thisTime = OS_Time();       // current time, 12.5 ns
+		DIO1 ^= BIT1;
     DASoutput = Filter(input);
     FilterWork++;        // calculation finished
     if(FilterWork>1){    // ignore timing of first interrupt
@@ -144,7 +144,7 @@ void ButtonWork(void){
 // background threads execute once and return
 void SW1Push(void){
 	//if(OS_MsTime() > 20){ // debounce
-		OS_AddThread(&ButtonWork,128,3);
+		OS_AddThread(&ButtonWork,128,0);
 		NumCreated++; 
 	//}
 	//OS_ClearMsTime();  // at least 20ms between touches
@@ -203,9 +203,9 @@ unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 //unsigned long myId = OS_Id(); 
   ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz
-  NumCreated += OS_AddThread(&Display,128,0); 
+  NumCreated += OS_AddThread(&Display,128,0);
+	DIO2 ^= BIT2;
   while(NumSamples < RUNLENGTH) {
-			DIO2 ^= BIT2;
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
       data = OS_Fifo_Get();    // get from producer
       x[t] = data;             // real part is 0 to 4095, imaginary part is 0
@@ -399,12 +399,12 @@ int mainMain(void){
   OS_AddSW2Task(&SW2Push,3);
   ADC_Open_SoftwareTrigger(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
   OS_AddPeriodicThread(&DAS,PERIOD,3,1); // 2 kHz real time sampling of PD3		Timer2A
-	OS_AddPeriodicThread(&PID,PERIOD,3,2);  // Timer3A
 
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
   NumCreated += OS_AddThread(&Consumer,128,2); 
+	NumCreated += OS_AddThread(&PID,128,3);  // Lab 3, make this lowest priority
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }

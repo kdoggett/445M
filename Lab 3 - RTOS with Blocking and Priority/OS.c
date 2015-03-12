@@ -133,6 +133,9 @@ void ConsoleInit(void){
 	UART_OutString("3. UserTask");	
 }
 
+Sema4Type MailboxFree;
+Sema4Type MailboxFull;
+
 void OS_Init(void){
   DisableInterrupts();
   PLL_Init();                 // set processor clock to 80 MHz
@@ -169,23 +172,23 @@ void tcbs_Init(void){
 void SysTick_Handler(){ tcb* LastThread;
 	DisableInterrupts();
 	DIO0 ^= BIT0;
-	NextThread = RunPt->next;
-	LastThread = NextThread->next;
+	NextThread = firstThread->next;
+	LastThread = firstThread;
 	while(NextThread != LastThread) {
 		if(NextThread->sleep > 0){
 			NextThread->sleep--;
 		}
 		NextThread = NextThread->next;
 	}
-	NextThread = RunPt->next;
+	NextThread = firstThread->next;
 	while(NextThread != LastThread){
-		if(NextThread->sleep == 0){
+		if(NextThread->sleep == 0 && NextThread->priority <= firstThread->priority){
+			firstThread = NextThread;
 			break;
 		}
-		else{
-			NextThread = NextThread->next;
-		}
+		NextThread = NextThread->next;
 	}
+	NextThread = firstThread;
 	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PEND_SV;
 	EnableInterrupts();
 
@@ -217,6 +220,14 @@ void OS_Kill(void){
 	RunPt->next->prev = RunPt->prev;
 	RunPt->empty = 0;
 	EnableInterrupts();
+	if(firstThread == RunPt){
+		firstThread = &tcbs[0];
+		for(int threadIndex = 0; threadIndex <= threadNum; threadIndex++) {
+			if(firstThread->priority > tcbs[threadIndex].priority){
+				firstThread = &tcbs[threadIndex];
+			}
+		}
+	}
 	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PENDSTSET;
 }	
 
@@ -228,10 +239,11 @@ int OS_Time(void){
 }
 
 int OS_TimeDifference(unsigned long start, unsigned long stop){ int diff;
-	if (stop < start){
+	if (start > stop){
 		diff = start - stop;
 	}
-	else {diff = NVIC_ST_CURRENT_R - stop + start;}	
+	else {diff = (TIME_2MS - stop) + start;}	
+	return diff;
 }
 	
 void OS_ClearMsTime(void){
@@ -258,7 +270,7 @@ void OS_Fifo_Init(unsigned long size){
 unsigned long OS_Fifo_Get(void){
 	unsigned long volatile *nextGetPt;
 	unsigned long volatile *storeGetPt;
-	*storeGetPt = *GetPt;
+	storeGetPt = GetPt;
 	nextGetPt = GetPt + 1;
 	if(PutPt == GetPt){
 		return(0);
@@ -283,20 +295,6 @@ int OS_Fifo_Put(unsigned long data){
 		PutPt = nextPutPt;
 		return 1;
 	}
-}
-
-/*********** MAILBOX ***********/
-//unsigned long DCcomponenet
-unsigned long mail;
-void OS_MailBox_Init(void){
-	mail = 0;
-}
-
-void OS_MailBox_Send(unsigned long data){
-	mail = data;
-}
-unsigned long OS_MailBox_Recv(void){
-	return mail;
 }
 
 /*********** SEMAPHORES ***********/
@@ -336,6 +334,29 @@ void OS_bSignal(Sema4Type *semaPt){
 	status = StartCritical();
 	semaPt->Value = 1;
 	EndCritical(status);
+}
+
+/*********** MAILBOX ***********/
+//unsigned long DCcomponenet
+unsigned long mail;
+
+
+
+void OS_MailBox_Init(void){
+	//OS_InitSemaphore(&MailboxFree,1);
+	//OS_InitSemaphore(&MailboxFull,0);
+	mail = 0;
+}
+
+void OS_MailBox_Send(unsigned long data){
+	//OS_bWait(&MailboxFree);
+	mail = data;
+	//OS_bSignal(&MailboxFull);
+}
+unsigned long OS_MailBox_Recv(void){
+	//OS_bWait(&MailboxFull);
+	unsigned long data = mail;
+	//OS_bWait(&MailboxFree);
 }
 	
 	
