@@ -9,6 +9,7 @@
 
 void Timer3A_Init(unsigned long period);
 #define TIMER3A_PERIOD	8000000
+#define FIFO_SIZE				32
 
 /*--------- TCB Stucture ---------*/
 
@@ -141,7 +142,7 @@ void OS_Init(void){
 	ST7735_InitR(INITR_REDTAB);
 	tcbs_Init();
 	Timer2_Init();
-	Timer3A_Init(TIMER3A_PERIOD);
+	Timer3_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6 - SysTick
@@ -197,7 +198,7 @@ int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long 
 		Timer2A_Launch(task, period, priority);
 	}
 	else{
-		Timer2B_Launch(task, period, priority);	
+		Timer3A_Launch(task, period, priority);	
 	}
 	return 1;
 }
@@ -228,7 +229,7 @@ int OS_Time(void){
 
 int OS_TimeDifference(unsigned long start, unsigned long stop){ int diff;
 	if (stop < start){
-		diff = !(stop - start) + 1;
+		diff = start - stop;
 	}
 	else {diff = NVIC_ST_CURRENT_R - stop + start;}	
 }
@@ -248,20 +249,21 @@ int OS_MsTime(void){
 
 unsigned long volatile *PutPt;
 unsigned long volatile *GetPt;
-unsigned long Fifo[128];
+unsigned long Fifo[FIFO_SIZE];
 
 void OS_Fifo_Init(unsigned long size){
-	PutPt = GetPt = &Fifo[0];	
+	PutPt = GetPt = &Fifo[0];
 }
 
 unsigned long OS_Fifo_Get(void){
 	unsigned long volatile *nextGetPt;
 	unsigned long volatile *storeGetPt;
+	*storeGetPt = *GetPt;
 	nextGetPt = GetPt + 1;
 	if(PutPt == GetPt){
 		return(0);
 	}
-	if(nextGetPt == &Fifo[128]){
+	if(nextGetPt == &Fifo[FIFO_SIZE]){
 		GetPt = &Fifo[0];		
 	}
 	return *storeGetPt;
@@ -273,7 +275,7 @@ int OS_Fifo_Put(unsigned long data){
 	if(nextPutPt == GetPt){
 		return 0;
 	}
-	if(nextPutPt == &Fifo[128]){
+	if(nextPutPt == &Fifo[FIFO_SIZE]){
 		nextPutPt = &Fifo[0];
   }
 	else{

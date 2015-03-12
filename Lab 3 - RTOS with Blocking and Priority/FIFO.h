@@ -28,7 +28,7 @@
 #ifndef __FIFO_H__
 #define __FIFO_H__
 
-#define FIFOSIZE   16         // size of the FIFOs (must be power of 2)
+#define FIFOSIZE   32         // size of the FIFOs (must be power of 2)
 #define FIFOSUCCESS 1         // return value on success
 #define FIFOFAIL    0         // return value on failure
 

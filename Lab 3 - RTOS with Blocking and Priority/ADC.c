@@ -1,5 +1,6 @@
 #include "tm4c123gh6pm.h"
 #include <stdint.h>
+#include "pins.h"
 
 // This initialization function sets up the ADC according to the
 // following parameters.  Any parameters not explicitly listed

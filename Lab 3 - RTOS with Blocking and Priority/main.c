@@ -64,10 +64,9 @@ long x[64],y[64];         // input and output arrays for FFT
 //---------------------User debugging-----------------------
 unsigned long DataLost;     // data sent by Producer, but not received by Consumer
 long MaxJitter;             // largest time jitter between interrupts in usec
-unsigned long JitterHistogram[50];
-//#define JITTERSIZE 64
-//unsigned long const JitterSize=JITTERSIZE;
-//unsigned long JitterHistogram[JITTERSIZE]={0,};
+#define JITTERSIZE 64
+unsigned long const JitterSize=JITTERSIZE;
+unsigned long JitterHistogram[JITTERSIZE]={0,};
 
 //------------------Task 1--------------------------------
 // 2 kHz sampling ADC channel 1, using software start trigger
@@ -114,10 +113,10 @@ long jitter;                    // time between measured and expected, in us
       if(jitter > MaxJitter){
         MaxJitter = jitter; // in usec
       }       // jitter should be 0
-      //if(jitter >= JitterSize){
-        //jitter = JITTERSIZE-1;
-      //}
-      //JitterHistogram[jitter]++; 
+      if(jitter >= JitterSize){
+        jitter = JITTERSIZE-1;
+      }
+      JitterHistogram[jitter]++; 
     }
     lastTime = thisTime;
   }
@@ -200,13 +199,13 @@ void Display(void);
 // inputs:  none
 // outputs: none
 void Consumer(void){ 
-	DIO2 ^= BIT2;
 unsigned long data,DCcomponent;   // 12-bit raw ADC sample, 0 to 4095
 unsigned long t;                  // time in 2.5 ms
 //unsigned long myId = OS_Id(); 
   ADC_Collect(5, FS, &Producer); // start ADC sampling, channel 5, PD2, 400 Hz
   NumCreated += OS_AddThread(&Display,128,0); 
   while(NumSamples < RUNLENGTH) {
+			DIO2 ^= BIT2;
     for(t = 0; t < 64; t++){   // collect 64 ADC samples
       data = OS_Fifo_Get();    // get from producer
       x[t] = data;             // real part is 0 to 4095, imaginary part is 0
@@ -228,8 +227,9 @@ unsigned long data,voltage;
   while(NumSamples < RUNLENGTH) { 
     data = OS_MailBox_Recv();
     voltage = 3000*data/4095;               // calibrate your device so voltage is in mV
-    ST7735_Message(0,2,"v(mV) =",voltage);  
-  } 
+    ST7735_Message(0,2,"v(mV) =",voltage);
+		OS_Sleep(50);
+  }
   OS_Kill();  // done
 } 
 
@@ -392,18 +392,19 @@ int mainMain(void){
 
 //********initialize communication channels
   OS_MailBox_Init();
-  OS_Fifo_Init(128);    // ***note*** 4 is not big enough*****
+  OS_Fifo_Init(32);    // ***note*** 4 is not big enough*****
 
 //*******attach background tasks***********
-  OS_AddSW1Task(&SW1Push,2);
-  OS_AddSW2Task(&SW2Push,2);
+  OS_AddSW1Task(&SW1Push,3);
+  OS_AddSW2Task(&SW2Push,3);
   ADC_Open_SoftwareTrigger(4);  // sequencer 3, channel 4, PD3, sampling in DAS()
-  OS_AddPeriodicThread(&DAS,PERIOD,1,0); // 2 kHz real time sampling of PD3		Timer2A
-//	OS_AddPeriodicThread(&PID,PERIOD,3,1);  // Timer2B
+  OS_AddPeriodicThread(&DAS,PERIOD,3,1); // 2 kHz real time sampling of PD3		Timer2A
+	OS_AddPeriodicThread(&PID,PERIOD,3,2);  // Timer3A
+
   NumCreated = 0 ;
 // create initial foreground threads
 	NumCreated += OS_AddThread(&Interpreter,128,2);
-  //NumCreated += OS_AddThread(&Consumer,128,1); 
+  NumCreated += OS_AddThread(&Consumer,128,2); 
   OS_Launch(TIME_2MS); // doesn't return, interrupts enabled in here
   return 0;            // this never executes
 }
@@ -413,25 +414,34 @@ unsigned long periodicTaskA;
 unsigned long periodicTaskB;
 
 int i = 0;
+int j = 0;
+unsigned long JitterRecordA[100];
+unsigned long JitterRecordB[100];
+int jitterSumA;
+int jitterSumB;
+int jitterAverageA;
+int jitterAverageB;
 void jitter(void){
-	long jitter;                    // time between measured and expected, in us
-	unsigned long diff = OS_TimeDifference(periodicTaskA,periodicTaskB);
-	if(diff>PERIOD){
-		jitter = (diff-PERIOD+4)/8;  // in 0.1 usec
-	}else{
-		jitter = (PERIOD-diff+4)/8;  // in 0.1 usec
-	}
-	if(jitter > MaxJitter){
-		MaxJitter = jitter; // in usec
-	}
-  JitterHistogram[i] = jitter; 
-	i++;
-	if(i == 50){
-		i = 0;
-	}
+	i = 0;
+	j = 0;
 	UART_OutString("Jitter: ");
-	UART_OutUDec(jitter);
-	UART_OutString("Max Jitter:");
+	for (i = 0; i < 100; i++){
+		jitterSumA += JitterRecordA[i]; 
+	}
+	jitterAverageA = jitterSumA/100;
+	for (j = 0; j < 100; j++){
+		jitterSumB += JitterRecordB[j];
+	}
+	jitterAverageB = jitterSumB/100;
+	UART_OutString("Jitter TaskA Total: ");
+	UART_OutUDec(jitterSumA);
+	UART_OutString("\nJitter TaskB Total: ");
+	UART_OutUDec(jitterSumB);
+	UART_OutString("\nJitter TaskA Average: ");
+	UART_OutUDec(jitterAverageA);
+	UART_OutString("\nJitter TaskB Average: ");
+	UART_OutUDec(jitterAverageB);
+	UART_OutString("\nMax Jitter:");
 	UART_OutUDec(MaxJitter);
 	UART_OutChar('\n');
 }
@@ -449,17 +459,26 @@ unsigned long CountA;   // number of times Task A called
 unsigned long CountB;   // number of times Task B called
 unsigned long Count1;   // number of times thread1 loops
 
-
 //*******PseudoWork*************
 // simple time delay, simulates user program doing real work
 // Input: amount of work in 100ns units (free free to change units
 // Output: none
 void PseudoWork(unsigned short work){
-	DIO4 ^= BIT4;
-unsigned short startTime;
-  startTime = OS_Time();    // time in 100ns units
-	unsigned short test = OS_TimeDifference(startTime,OS_Time());
-//  while(OS_TimeDifference(startTime,OS_Time()) <= work){} 
+	DIO1 = 0;
+	DIO2 = 0;
+	unsigned long startTime;
+  startTime = OS_Time();    // time in 100ns units;
+	JitterRecordA[i] = OS_TimeDifference(periodicTaskA,startTime)/80000;
+	JitterRecordB[i] = OS_TimeDifference(periodicTaskB,startTime)/80000;
+	i++;
+	j++;
+	if(i == 100){
+		i = 0;
+	}
+	if(j == 100){
+		j = 0;
+	}
+	//while(OS_TimeDifference(startTime,OS_Time()) <= work){} 
 }
 void Thread6(void){  // foreground thread
   Count1 = 0;          
@@ -471,10 +490,8 @@ void Thread6(void){  // foreground thread
 }
 
 void Thread7(void){  // foreground thread
-	DIO5 = BIT5;
   UART_OutString("\n\rEE345M/EE380L, Lab 3 Preparation 2\n\r");
-  OS_Sleep(5000);   // 10 seconds  
-	DIO5 = 0;
+  OS_Sleep(2500);   // 10 seconds  
   jitter();         // print jitter information
   UART_OutString("\n\r\n\r");
   OS_Kill();
@@ -486,15 +503,13 @@ void TaskA(void){       // called every {1000, 2990us} in background
 	periodicTaskA = OS_Time();
   CountA++;
   PseudoWork(workA*counts1us); //  do work (100ns time resolution)
-  DIO1 = 0;      // debugging profile  
 }
 #define workB 250       // 250 us work in Task B
 void TaskB(void){       // called every pB in background
   DIO2 = BIT2;      // debugging profile  
 	periodicTaskB = OS_Time();
   CountB++;
-  PseudoWork(workB*counts1us); //  do work (100ns time resolution)
-  DIO2 = 0;      // debugging profile  
+  PseudoWork(workB*counts1us); //  do work (100ns time resolution) 
 }
 
 int Testmain5(void){       // Testmain5 Lab 3

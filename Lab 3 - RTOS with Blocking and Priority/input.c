@@ -25,7 +25,7 @@ int OS_AddSW1Task(void(*task)(void), unsigned long priority){
   GPIO_PORTF_ICR_R = 0x10;      // (e) clear flag4
   GPIO_PORTF_IM_R |= 0x10;      // (f) arm interrupt on PF4 *** No IME bit as mentioned in Book ***
 	priority = priority << 21;
-  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|priority; // (g) priority 5
+  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|priority; // (g) priority user defined
   NVIC_EN0_R = 0x40000000;      // (h) enable interrupt 30 in NVIC
 	return 1;
 }
@@ -48,7 +48,7 @@ int OS_AddSW2Task(void(*task)(void), unsigned long priority){
   GPIO_PORTF_ICR_R = 0x01;      // (e) clear flag0
   GPIO_PORTF_IM_R |= 0x01;      // (f) arm interrupt on PF4 *** No IME bit as mentioned in Book ***
 	priority = priority << 21;
-  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|priority; // (g) priority 5
+  NVIC_PRI7_R = (NVIC_PRI7_R&0xFF00FFFF)|priority; // (g) priority user defined
   NVIC_EN0_R = 0x40000000;      // (h) enable interrupt 30 in NVIC
 	return 1;
 }
