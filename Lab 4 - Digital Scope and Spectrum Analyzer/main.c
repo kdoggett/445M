@@ -14,10 +14,10 @@ void PT_1(void){
 }
 
 void T_1(void){
-	//for(;;){
+	for(;;){
 		DIO1 ^= BIT1;
-	//}
-	OS_Sleep(100);
+		OS_Sleep(10);
+	}
 }
 
 void T_2(void){
