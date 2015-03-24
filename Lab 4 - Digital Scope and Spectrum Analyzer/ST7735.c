@@ -80,7 +80,10 @@
 #include <stdint.h>
 #include "ST7735.h"
 #include "tm4c123gh6pm.h"
+<<<<<<< HEAD
 #include "OS.h"
+=======
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
 
 // 16 rows (0 to 15) and 21 characters (0 to 20)
 // Requires (11 + size*size*6*8) bytes of transmission for each character
@@ -761,9 +764,13 @@ void ST7735_InitB(void) {
 // Initialization for ST7735R screens (green or red tabs).
 // Input: option one of the enumerated options depending on tabs
 // Output: none
+<<<<<<< HEAD
  Sema4Type LCDFree;
 void ST7735_InitR(enum initRFlags option) {
 	OS_InitSemaphore(&LCDFree,1);	 // LCD semaphore
+=======
+void ST7735_InitR(enum initRFlags option) {
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
   commonInit(Rcmd1);
   if(option == INITR_GREENTAB) {
     commandList(Rcmd2green);
@@ -832,13 +839,20 @@ void static pushColor(uint16_t color) {
 uint8_t *previousString = NULL;
 long previousValue = 0;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
 //-----------ST7735_Message--------------
 //Draws a string and long value one one of the two split screens
 //Each logically seperate screen contains four lines
 //Used for interaction with the CLI
 
 void ST7735_Message(int screen,int line,char *string,long value){	
+<<<<<<< HEAD
 	OS_bWait(&LCDFree);
+=======
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
 	if(screen == 0){
 		if(line == 0){
 			ST7735_DrawString(LEFT_COLUMN,LINE_ONE,previousString,BG_COLOR);
@@ -925,7 +939,10 @@ void ST7735_Message(int screen,int line,char *string,long value){
 	}
 	
 	previousString = string;
+<<<<<<< HEAD
 	OS_bSignal(&LCDFree);
+=======
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
 }
 
 

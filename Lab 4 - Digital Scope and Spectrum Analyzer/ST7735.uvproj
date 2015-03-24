@@ -428,7 +428,11 @@
             <File>
               <FileName>ST7735.c</FileName>
               <FileType>1</FileType>
+<<<<<<< HEAD
               <FilePath>.\ST7735.c</FilePath>
+=======
+              <FilePath>.\pins.c</FilePath>
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
             </File>
             <File>
               <FileName>osasm.s</FileName>
@@ -479,6 +483,7 @@
             </File>
             <File>
               <FileName>main.c</FileName>
+<<<<<<< HEAD
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
             </File>
@@ -489,10 +494,13 @@
             </File>
             <File>
               <FileName>ADC.c</FileName>
+=======
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
               <FileType>1</FileType>
               <FilePath>.\ADC.c</FilePath>
             </File>
             <File>
+<<<<<<< HEAD
               <FileName>UART.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\UART.c</FilePath>
@@ -501,6 +509,11 @@
               <FileName>interpreter.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\interpreter.c</FilePath>
+=======
+              <FileName>Timers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Timers.c</FilePath>
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
             </File>
           </Files>
         </Group>

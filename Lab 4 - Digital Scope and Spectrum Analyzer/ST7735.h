@@ -117,6 +117,7 @@ void ST7735_InitR(enum initRFlags option);
 
 //-----------ST7735_Message-----------
 // Draws string and long value on designated screen
+<<<<<<< HEAD
 //
 //COLUMN ONE			COLUMN TWO
 //		0								15
@@ -138,6 +139,8 @@ void ST7735_InitR(enum initRFlags option);
 //---------------------------
 //15	LINE EIGHT
 
+=======
+>>>>>>> aa8c9ef2009c12bb4266218f976647f167100e91
 void ST7735_Message(int screen,int line,char *string,long value);
 
 
