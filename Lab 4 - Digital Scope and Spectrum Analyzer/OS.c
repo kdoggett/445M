@@ -2,7 +2,7 @@
 #include "PLL.h"
 #include "tm4c123gh6pm.h"
 #include "pins.h"
-#include "timers.h"
+#include "Timers.h"
 #include <stdint.h>
 
 /*--------- TCB Stucture ---------*/
@@ -183,10 +183,10 @@ void SysTick_Handler(){ tcb* LastThread;
 /*********** PERIODIC TASKS ***********/
 	
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority, int timerNumber){
-	if(timerNumber == 1){
+	if(timerNumber == 2){
 		Timer2A_Launch(task, period, priority);
 	}
-	else if(timerNumber == 2){
+	else if(timerNumber == 3){
 		Timer3A_Launch(task, period, priority);	
 	}
 	return SUCCESS;

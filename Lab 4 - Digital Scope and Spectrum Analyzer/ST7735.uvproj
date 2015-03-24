@@ -436,11 +436,6 @@
               <FilePath>.\pins.c</FilePath>
             </File>
             <File>
-              <FileName>cr4_fft_64_stm32.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\cr4_fft_64_stm32.s</FilePath>
-            </File>
-            <File>
               <FileName>osasm.s</FileName>
               <FileType>2</FileType>
               <FilePath>.\osasm.s</FilePath>
@@ -483,24 +478,9 @@
               </FileOption>
             </File>
             <File>
-              <FileName>PID_stm32.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\PID_stm32.s</FilePath>
-            </File>
-            <File>
               <FileName>startup.s</FileName>
               <FileType>2</FileType>
               <FilePath>.\startup.s</FilePath>
-            </File>
-            <File>
-              <FileName>Timer2A.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Timer2A.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer3A.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Timer3A.c</FilePath>
             </File>
             <File>
               <FileName>main.c</FileName>
@@ -508,9 +488,9 @@
               <FilePath>.\main.c</FilePath>
             </File>
             <File>
-              <FileName>input.c</FileName>
+              <FileName>Timers.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\input.c</FilePath>
+              <FilePath>.\Timers.c</FilePath>
             </File>
           </Files>
         </Group>
