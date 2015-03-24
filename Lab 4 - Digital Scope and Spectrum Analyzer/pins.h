@@ -21,6 +21,7 @@ void Switch_Init(void);
 #define		BIT7	0x80
 
 //switches and such
+#define		PF0		(*((volatile unsigned long *)0x40025004))
 #define		PF2		(*((volatile unsigned long *)0x40025010))
 #define		PF3		(*((volatile unsigned long *)0x40025020))
 #define		PF4		(*((volatile unsigned long *)0x40025040))

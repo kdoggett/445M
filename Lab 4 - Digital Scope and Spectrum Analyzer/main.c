@@ -3,41 +3,60 @@
 #include "OS.h"
 #include "pins.h"
 #include "tm4c123gh6pm.h"
+#include "ST7735.h"
+#include "UART.h"
+#include <string.h> 
+#include "interpreter.h"
+#include "ADC.h"
 
 #define TIME_1MS    80000          
 #define TIME_2MS    (2*TIME_1MS)  
 #define TIME_500US  (TIME_1MS/2)  
 #define TIME_250US  (TIME_1MS/5) 
 
-void PT_1(void){
-	DIO1 ^= BIT1;
+//******* Switch Press *******
+//spawns new foreground thread
+
+int buttonPress = 0;
+
+void SW1_Work(void){ unsigned long ADCtest;
+	buttonPress++;
+	ADCtest = OS_Fifo_Get();
+	ST7735_Message(1,2,"ADC Value: ",ADCtest);
+	ST7735_Message(1,1,"Button Presses: ",buttonPress);
+	OS_Kill();
 }
 
-void T_1(void){
+void SW1Push(void){
+	OS_AddThread(&SW1_Work,128,3);
+}
+
+//******* Interpreter *********
+
+char command[COMMAND_MAX];
+
+void Interpreter(void){        
 	for(;;){
-		DIO1 ^= BIT1;
-		OS_Sleep(10);
+		while(RxFifo_Size() == 0){DIO1 ^= BIT1;};
+			UART_InString(command,COMMAND_MAX);
+			ProcessCommand(command);
 	}
 }
 
-void T_2(void){
+void DummyThread(void){
 	for(;;){
-		DIO2 ^= BIT2;
-	}
+		DIO4 ^= BIT4;
+		OS_Sleep(2);
+	};
+	
 }
 
-void T_3(void){
-	for(;;){
-		DIO3 ^= BIT3;
-	}
-}
 
 int main(void){
 	OS_Init();
-	//OS_AddPeriodicThread(&PT_1,TIME_500US,3,1);
-	OS_AddThread(&T_1,128,2);
-	OS_AddThread(&T_2,128,2);
-	OS_AddThread(&T_3,128,2);
+	OS_AddThread(&Interpreter,128,3);		// runs continously
+	OS_AddThread(&DummyThread,128,3);
+	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);
 	return 0;
 }

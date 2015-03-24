@@ -4,6 +4,8 @@
 #include "pins.h"
 #include "timers.h"
 #include <stdint.h>
+#include "ST7735.h"
+#include "UART.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -11,16 +13,17 @@
 #define STACKSIZE   128      // number of 32-bit words in stack
 #define SUCCESS			1
 #define FAIL				0
+#define	FIFOSIZE		32
 
 struct tcb{
-  int32_t 			*sp;      			// pointer to stack (valid for threads not running
+  int			 			*sp;      			// pointer to stack (valid for threads not running
   struct tcb		*next;  				// linked-list pointer to next
 	struct tcb		*prev;					// linked-list pointer to previous
-	char 					ID;							// identifies thread
-	uint32_t			sleep;					// sleep status
-	char					priority;				// priority of thread
-	char					blockedState;		// blocked status
-	char					empty;					// Tell whether or not a thread is empty.
+	int 					ID;							// identifies thread
+	int						sleep;					// sleep status
+	int						priority;				// priority of thread
+	int						blockedState;		// blocked status
+	int						empty;					// Tell whether or not a thread is empty.
 };
 typedef struct tcb tcb;			// typedef tcb as tcbType
 tcb tcbs[NUMTHREADS];				// allocate memory for NUMTHREADS threads
@@ -38,10 +41,13 @@ void StartOS(void);
 
 int threadNum = 0;
 int threadMaxed = 0;
+int threadsCreated = 0;
 tcb *firstThread = &tcbs[0];
 int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long priority){ 
 	int32_t status; 
 	status = StartCritical();
+	threadsCreated++;
+	ST7735_Message(0,1,"Threads Made: ",threadsCreated);
 	int threadCount = 0;
 	int threadNum = 0;
 	for(int i = 0; i < NUMTHREADS; i++){
@@ -123,6 +129,11 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 /*********** OS INIT/LAUNCH ***********/
 
 void ConsoleInit(void){
+	UART_OutString("Digital Scope and Analyzer\n\n");
+	UART_OutString("Commands: \n");
+	UART_OutString("1. Trigger Type\n");
+	UART_OutString("2. Enable/Disable ADC\n");
+	UART_OutString("3. Print ADC input and FFT calculations\n");
 }
 
 void OS_Init(void){
@@ -132,6 +143,10 @@ void OS_Init(void){
 	tcbs_Init();								// set all threads 'empty' field to zero
 	Timer2_Init();							// interrupt triggered, user thread
 	Timer3_Init();							// interrupt triggered, user thread
+	ST7735_InitR(INITR_REDTAB);	// initilize LCD
+	UART_Init();								// interrupt driven UART from Valvano
+	ConsoleInit();							// Console information message
+	OS_Fifo_Init(FIFOSIZE); 		// Used for passing data between ADC and display
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6 - SysTick
@@ -214,7 +229,7 @@ void OS_Kill(void){
 		}
 	}
 	EnableInterrupts();
-	//NVIC_INT_CTRL_R = NVIC_INT_CTRL_PENDSTSET;
+	NVIC_INT_CTRL_R = NVIC_INT_CTRL_PENDSTSET;
 }	
 
 /*********** TIME ***********/
@@ -265,6 +280,7 @@ unsigned long OS_Fifo_Get(void){
 	if(nextGetPt == &Fifo[FIFO_SIZE]){
 		GetPt = &Fifo[0];		
 	}
+	GetPt = nextGetPt;
 	return *storeGetPt;
 }
 
