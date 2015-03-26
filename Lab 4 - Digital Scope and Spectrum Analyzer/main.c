@@ -43,18 +43,18 @@ void Interpreter(void){
 	}
 }
 
-void DummyThread(void){
-	for(;;){
+void Graph(void){
 		DIO4 ^= BIT4;
-		ADCtest = OS_Fifo_Get();
-	};
+		ST7735_PlotClear(0,4095);  // range from 0 to 4095
+		ST7735_PlotPoint(OS_Fifo_Get()); 
+		ST7735_PlotNext();
 }
 
 
 int main(void){
 	OS_Init();
 	OS_AddThread(&Interpreter,128,3);		// runs continously
-	OS_AddThread(&DummyThread,128,3);
+	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);
 	return 0;
