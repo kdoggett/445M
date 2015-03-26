@@ -46,19 +46,30 @@ void Interpreter(void){
 }
 
 void Graph(void){
+<<<<<<< HEAD
 		for(;;){
 			DIO4 ^= BIT4;
 			ADCtest = OS_Fifo_Get();
 			ST7735_PlotPoint(ADCtest);
 			ST7735_PlotNext();
 		}
+=======
+		DIO4 ^= BIT4;
+		ST7735_PlotClear(0,4095);  // range from 0 to 4095
+		ST7735_PlotPoint(OS_Fifo_Get()); 
+		ST7735_PlotNext();
+>>>>>>> 142823331d0342f6890f8430cb779b4751525bb8
 }
 
 
 int main(void){
 	OS_Init();
+<<<<<<< HEAD
 	//OS_AddThread(&Interpreter,128,3);		// runs continously
 	ADC_HardwareTrigger_T0A(PERIOD_12kHZ);
+=======
+	OS_AddThread(&Interpreter,128,3);		// runs continously
+>>>>>>> 142823331d0342f6890f8430cb779b4751525bb8
 	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);
