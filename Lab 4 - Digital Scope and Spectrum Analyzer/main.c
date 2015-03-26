@@ -18,12 +18,12 @@
 //spawns new foreground thread
 
 int buttonPress = 0;
-
-void SW1_Work(void){ unsigned long ADCtest;
-	buttonPress++;
+volatile unsigned long ADCtest;
+void SW1_Work(void){ 
 	ADCtest = OS_Fifo_Get();
-	ST7735_Message(1,2,"ADC Value: ",ADCtest);
+	buttonPress++;
 	ST7735_Message(1,1,"Button Presses: ",buttonPress);
+	ST7735_Message(1,2,"ADCtest: ",ADCtest);
 	OS_Kill();
 }
 
@@ -46,9 +46,8 @@ void Interpreter(void){
 void DummyThread(void){
 	for(;;){
 		DIO4 ^= BIT4;
-		OS_Sleep(2);
+		ADCtest = OS_Fifo_Get();
 	};
-	
 }
 
 

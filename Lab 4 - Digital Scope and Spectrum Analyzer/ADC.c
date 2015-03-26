@@ -88,9 +88,7 @@ void ADC_HardwareTrigger_T0A(int period){
 }
 
 void ADC0Seq3_Handler(void){
+	DIO2 ^= BIT2;
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
-	unsigned long result = ADC0_SSFIFO3_R;
-	UART_OutUDec(result);
-	UART_OutChar('\n');
 	OS_Fifo_Put(ADC0_SSFIFO3_R);
 }

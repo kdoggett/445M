@@ -7,7 +7,7 @@
 
 #define TIME_1MS    80000          
 #define TIME_2MS    (2*TIME_1MS)  
-#define TIME_78MS		(78*TIME_1MS)
+#define PERIOD_12kHZ		78*80
 #define TIME_500US  (TIME_1MS/2)  
 #define TIME_250US  (TIME_1MS/5) 
 
@@ -50,7 +50,7 @@ void ProcessCommand(char *command){
 	else if(processCommand == YES){
 		if(commandNum == 1){
 			if(strcmp(command,"1") == 0){
-				ADC_HardwareTrigger_T0A(TIME_78MS);
+				ADC_HardwareTrigger_T0A(PERIOD_12kHZ);
 				UART_OutString("\nHardware Sample Active\n");
 			}
 			else{
