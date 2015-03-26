@@ -1,3 +1,4 @@
+#include "FIFO.h"
 #include <stdint.h>
 
 #define	PERIOD	80000

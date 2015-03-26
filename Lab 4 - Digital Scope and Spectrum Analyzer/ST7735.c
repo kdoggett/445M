@@ -1557,6 +1557,7 @@ int32_t j;
 void ST7735_PlotNext(void){
   if(X==127){
     X = 0;
+		ST7735_PlotClear(0,4095);
   } else{
     X++;
   }

@@ -8,6 +8,7 @@
 #include <string.h> 
 #include "interpreter.h"
 #include "ADC.h"
+#define PERIOD_12kHZ		78*80
 
 #define TIME_1MS    80000          
 #define TIME_2MS    (2*TIME_1MS) 
@@ -18,7 +19,8 @@
 //spawns new foreground thread
 
 int buttonPress = 0;
-volatile unsigned long ADCtest;
+uint32_t ADCtest;
+unsigned int *data;
 void SW1_Work(void){ 
 	ADCtest = OS_Fifo_Get();
 	buttonPress++;
@@ -43,18 +45,21 @@ void Interpreter(void){
 	}
 }
 
-void DummyThread(void){
-	for(;;){
-		DIO4 ^= BIT4;
-		ADCtest = OS_Fifo_Get();
-	};
+void Graph(void){
+		for(;;){
+			DIO4 ^= BIT4;
+			ADCtest = OS_Fifo_Get();
+			ST7735_PlotPoint(ADCtest);
+			ST7735_PlotNext();
+		}
 }
 
 
 int main(void){
 	OS_Init();
-	OS_AddThread(&Interpreter,128,3);		// runs continously
-	OS_AddThread(&DummyThread,128,3);
+	//OS_AddThread(&Interpreter,128,3);		// runs continously
+	ADC_HardwareTrigger_T0A(PERIOD_12kHZ);
+	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);
 	return 0;

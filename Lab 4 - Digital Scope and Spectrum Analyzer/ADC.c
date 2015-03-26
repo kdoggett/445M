@@ -1,7 +1,10 @@
 #include "tm4c123gh6pm.h"
 #include "OS.h"
-#include "ADC.h"
 #include "pins.h"
+#include "ST7735.h"
+#include "FIFO.h"
+#include "stdint.h"
+#include "ADC.h"
 
 unsigned long ADC_Value;
 //******* Periodic Thread ****
