@@ -299,6 +299,15 @@ void ST7735_SetCursor(uint32_t newX, uint32_t newY);
 // Variable format 1-10 digits with no space before or after
 void ST7735_OutUDec(uint32_t n);
 
+//-----------------------ST7735_OutValue-----------------------
+// Output a 32-bit number in unsigned decimal format
+// Position determined by ST7735_SetCursor command
+// Color set by ST7735_SetTextColor
+// Input: 32-bit number to be transferred
+// Output: none
+// Variable format 1-10 digits with no space before or after
+void ST7735_OutValue(uint32_t n);
+
 
 //------------ST7735_SetRotation------------
 // Change the image rotation.

@@ -1300,9 +1300,17 @@ void ST7735_OutUDec(uint32_t n){
   }
 }
 
-
-
-
+//----------------------ST7735_OutValue---------------------
+// Output a 32-bit number in unsigned decimal continously
+void ST7735_OutValue(uint32_t n){
+	ST7735_SetCursor(0,0);
+	ST7735_SetTextColor(BG_COLOR);
+	ST7735_OutUDec(previousValue);
+	ST7735_SetCursor(0,0);
+	ST7735_SetTextColor(TEXT_COLOR);
+	ST7735_OutUDec(n);	
+	previousValue = n;
+}
 
 #define MADCTL_MY  0x80
 #define MADCTL_MX  0x40

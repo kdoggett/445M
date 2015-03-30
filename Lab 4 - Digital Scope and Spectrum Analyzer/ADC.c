@@ -10,7 +10,6 @@
 volatile unsigned long ADC_Value;
 //******* Periodic Thread ****
 void ADC_Sample_Software(void){
-		DIO2 ^= BIT2;
 		ADC_Value = ADC_In();	// Puts ADC sample value in FIFO
 		ST7735_Message(0,2,"Software Trigger: ",ADC_Value);
 }
@@ -92,5 +91,6 @@ void ADC_HardwareTrigger_T0A(int period){
 void ADC0Seq3_Handler(void){
 	DIO2 ^= BIT2;
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
-	OS_Fifo_Put(ADC0_SSFIFO3_R);
+	OS_MailBox_Send(ADC0_SSFIFO3_R);
+	//OS_Fifo_Put(ADC0_SSFIFO3_R);
 }

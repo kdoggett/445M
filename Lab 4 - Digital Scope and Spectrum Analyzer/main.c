@@ -10,7 +10,9 @@
 #include "ADC.h"
 #define PERIOD_12kHZ		78*80
 
-#define TIME_1MS    80000          
+#define TIME_1MS    80000
+#define TIME_10S		800000000
+#define TIME_1S			80000000
 #define TIME_2MS    (2*TIME_1MS) 
 #define TIME_500US  (TIME_1MS/2)  
 #define TIME_250US  (TIME_1MS/5) 
@@ -48,19 +50,20 @@ void Interpreter(void){
 void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
-			ADCtest = OS_Fifo_Get();
-			ST7735_Message(1,1,"HW Trigger: ",ADCtest);
+			ADCtest = OS_MailBox_Recv();
+			//ADCtest = OS_Fifo_Get();
+			ST7735_OutValue(ADCtest);
 			//ST7735_PlotPoint(ADCtest);
 			//ST7735_PlotNext();
+			OS_Sleep(20);
 		}
 }
-
 
 int main(void){
 	OS_Init();
 	OS_AddThread(&Interpreter,128,3);		// runs continously
-	ADC_SoftwareTrigger();
-	ADC_HardwareTrigger_T0A(PERIOD_12kHZ);
+	//ADC_SoftwareTrigger();
+	ADC_HardwareTrigger_T0A(TIME_2MS*15);
 	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);
