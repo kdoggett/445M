@@ -10,4 +10,4 @@ void ADC_SoftwareTrigger(void);
 // Busy-wait Analog to digital conversion
 // Input: none
 // Output: 12-bit result of ADC conversion
-void ADC_In(void);
+unsigned long ADC_In(void);

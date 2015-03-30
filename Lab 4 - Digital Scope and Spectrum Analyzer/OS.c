@@ -13,7 +13,7 @@
 #define STACKSIZE   128      // number of 32-bit words in stack
 #define SUCCESS			1
 #define FAIL				0
-#define	FIFOSIZE		32
+#define	FIFO_SIZE		1000
 
 struct tcb{
   int			 			*sp;      			// pointer to stack (valid for threads not running
@@ -47,7 +47,7 @@ int OS_AddThread(void(*task)(void), unsigned long stackSize, unsigned long prior
 	int32_t status; 
 	status = StartCritical();
 	threadsCreated++;
-	ST7735_Message(0,1,"Threads Made: ",threadsCreated);
+	//ST7735_Message(0,1,"Threads Made: ",threadsCreated);
 	int threadCount = 0;
 	int threadNum = 0;
 	for(int i = 0; i < NUMTHREADS; i++){
@@ -146,7 +146,7 @@ void OS_Init(void){
 	ST7735_InitR(INITR_REDTAB);	// initilize LCD
 	UART_Init();								// interrupt driven UART from Valvano
 	ConsoleInit();							// Console information message
-	OS_Fifo_Init(FIFOSIZE); 		// Used for passing data between ADC and display
+	OS_Fifo_Init(FIFO_SIZE); 		// Used for passing data between ADC and display
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6 - SysTick
@@ -260,7 +260,6 @@ int OS_MsTime(void){
 
 /*********** FIFO ***********/
 
-#define FIFO_SIZE				32
 unsigned long volatile *PutPt;
 unsigned long volatile *GetPt;
 unsigned long Fifo[FIFO_SIZE];
