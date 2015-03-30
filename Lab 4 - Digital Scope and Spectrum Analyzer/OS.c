@@ -13,7 +13,7 @@
 #define STACKSIZE   128      // number of 32-bit words in stack
 #define SUCCESS			1
 #define FAIL				0
-#define	FIFO_SIZE		1000
+#define	FIFO_SIZE		32
 
 struct tcb{
   int			 			*sp;      			// pointer to stack (valid for threads not running
@@ -259,6 +259,8 @@ int OS_MsTime(void){
 }
 
 /*********** FIFO ***********/
+int getCount = 0;
+int putCount = 0;
 
 unsigned long volatile *PutPt;
 unsigned long volatile *GetPt;
@@ -269,6 +271,7 @@ void OS_Fifo_Init(unsigned long size){
 }
 
 unsigned long OS_Fifo_Get(void){
+	getCount++;
 	unsigned long volatile *nextGetPt;
 	unsigned long volatile *storeGetPt;
 	storeGetPt = GetPt;
@@ -284,6 +287,7 @@ unsigned long OS_Fifo_Get(void){
 }
 
 int OS_Fifo_Put(unsigned long data){
+	putCount++;
 	unsigned long volatile *nextPutPt;
 	nextPutPt = PutPt + 1;
 	if(nextPutPt == GetPt){

@@ -39,6 +39,14 @@ void SW1Push(void){
 
 char command[COMMAND_MAX];
 
+void dummyThread(void){
+	for(;;){
+		DIO1 ^= BIT1;
+		//OS_Sleep(2);
+	}
+	
+}
+
 void Interpreter(void){        
 	for(;;){
 		while(RxFifo_Size() == 0){DIO1 ^= BIT1;};
@@ -50,20 +58,20 @@ void Interpreter(void){
 void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
-			ADCtest = OS_MailBox_Recv();
-			//ADCtest = OS_Fifo_Get();
-			ST7735_OutValue(ADCtest);
-			//ST7735_PlotPoint(ADCtest);
-			//ST7735_PlotNext();
-			OS_Sleep(20);
+			ADCtest = OS_Fifo_Get();
+			ST7735_PlotPoint(ADCtest);
+			ST7735_PlotNext();
+			//OS_Sleep(1);
 		}
 }
 
 int main(void){
 	OS_Init();
-	OS_AddThread(&Interpreter,128,3);		// runs continously
+	ST7735_PlotClear(0,4095);
+	//OS_AddThread(&dummyThread,128,3);		// runs continously
+	//OS_AddThread(&Interpreter,128,3);		// runs continously
 	//ADC_SoftwareTrigger();
-	ADC_HardwareTrigger_T0A(TIME_2MS*15);
+	ADC_HardwareTrigger_T0A(TIME_1MS/5);
 	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);
