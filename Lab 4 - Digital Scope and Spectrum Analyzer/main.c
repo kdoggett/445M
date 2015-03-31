@@ -20,14 +20,20 @@
 //******* Switch Press *******
 //spawns new foreground thread
 
-int buttonPress = 0;
 uint32_t ADCtest;
 unsigned int *data;
+
 void SW1_Work(void){ 
-	ADCtest = OS_Fifo_Get();
-	buttonPress++;
-	ST7735_Message(1,1,"Button Presses: ",buttonPress);
-	ST7735_Message(1,2,"ADCtest: ",ADCtest);
+	DisableInterrupts();
+	ST7735_PlotClear(0,4095);
+	int i = 0;
+	for (i = 0;i < 64;i++){
+		ADCtest = OS_Fifo_Get();
+		ST7735_PlotPoint(ADCtest);
+		ST7735_PlotNext();
+		OS_Sleep(50);
+	}
+	EnableInterrupts();
 	OS_Kill();
 }
 
@@ -59,13 +65,13 @@ void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
 			//if(Graph_Type == VvT){
-				ADCtest = OS_Fifo_Get();
-				ST7735_PlotPoint(ADCtest);
-				ST7735_PlotNext();
+			ADCtest = OS_Fifo_Get();
+			ST7735_PlotPoint(ADCtest);
+			ST7735_PlotNext();
 			OS_Sleep(10);
 			//}
 			//if(Graph_Type == VvF){
-				
+			
 			//}
 		}
 }
@@ -73,7 +79,6 @@ void Graph(void){
 int main(void){
 	OS_Init();
 	ST7735_PlotClear(0,4095);
-	//OS_AddThread(&dummyThread,128,3);		// runs continously
 	OS_AddThread(&Interpreter,128,3);		// runs continously
 	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD

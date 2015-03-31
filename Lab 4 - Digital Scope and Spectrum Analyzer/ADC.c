@@ -11,8 +11,11 @@
 volatile unsigned long ADC_Value;
 //******* Periodic Thread ****
 void ADC_Sample_Software(void){
-		ADC_Value = ADC_In();	// Puts ADC sample value in FIFO
-		ST7735_Message(0,2,"Software Trigger: ",ADC_Value);
+	int16_t filterOutput;
+	filterOutput = ADC_In();
+	filterOutput = Filter_Calc(filterOutput);
+	ST7735_PlotPoint(filterOutput);
+	ST7735_PlotNext();
 }
 
 unsigned long ADC_In(void){ 
@@ -49,7 +52,7 @@ void ADC_SoftwareTrigger(void){ volatile int delay;
   ADC0_SSCTL2_R = 0x0060;         // 13) no TS0 D0 IE0 END0 TS1 D1, yes IE1 END1
   ADC0_IM_R &= ~0x0004;           // 14) disable SS2 interrupts
   ADC0_ACTSS_R |= 0x0004;         // 15) enable sample sequencer 2
-	OS_AddPeriodicThread(&ADC_Sample_Software,TIME_2MS*5,5,1);
+	OS_AddPeriodicThread(&ADC_Sample_Software,TIME_2MS*10,5,1);
 	EndCritical(status);
 }
 
@@ -90,8 +93,8 @@ void ADC_HardwareTrigger_T0A(int period){
 }
 
 void ADC0Seq3_Handler(void){
-	int16_t filterOutput;
 	DIO2 ^= BIT2;
+	int16_t filterOutput;
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
 	filterOutput = ADC0_SSFIFO3_R;
 	filterOutput = Filter_Calc(filterOutput);
