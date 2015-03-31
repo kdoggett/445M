@@ -14,7 +14,7 @@
 #define STACKSIZE   128      // number of 32-bit words in stack
 #define SUCCESS			1
 #define FAIL				0
-#define	FIFO_SIZE		32
+#define	FIFO_SIZE		2000
 
 struct tcb{
   int			 			*sp;      			// pointer to stack (valid for threads not running
@@ -260,7 +260,8 @@ int OS_MsTime(void){
 	return 21;
 }
 
-/*********** FIFO ***********/
+/*********** 
+***********/
 int getCount = 0;
 int putCount = 0;
 

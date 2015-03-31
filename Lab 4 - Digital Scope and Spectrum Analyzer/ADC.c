@@ -49,7 +49,7 @@ void ADC_SoftwareTrigger(void){ volatile int delay;
   ADC0_SSCTL2_R = 0x0060;         // 13) no TS0 D0 IE0 END0 TS1 D1, yes IE1 END1
   ADC0_IM_R &= ~0x0004;           // 14) disable SS2 interrupts
   ADC0_ACTSS_R |= 0x0004;         // 15) enable sample sequencer 2
-	OS_AddPeriodicThread(&ADC_Sample_Software,TIME_2MS,5,1);
+	OS_AddPeriodicThread(&ADC_Sample_Software,TIME_2MS*5,5,1);
 	EndCritical(status);
 }
 
@@ -93,6 +93,7 @@ void ADC0Seq3_Handler(void){
 	int16_t filterOutput;
 	DIO2 ^= BIT2;
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
-	filterOutput = Filter_Calc(ADC0_SSFIFO3_R);
+	filterOutput = ADC0_SSFIFO3_R;
+	filterOutput = Filter_Calc(filterOutput);
 	OS_Fifo_Put(filterOutput);
 }

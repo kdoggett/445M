@@ -5,7 +5,8 @@
 #include "ADC.h"
 #include "pins.h"
 
-#define TIME_1MS    80000          
+#define TIME_1MS    80000        
+#define PERIOD_100Hz	TIME_2MS*5
 #define TIME_2MS    (2*TIME_1MS)  
 #define PERIOD_12kHZ		78*80
 #define TIME_500US  (TIME_1MS/2)  
@@ -50,7 +51,7 @@ void ProcessCommand(char *command){
 	else if(processCommand == YES){
 		if(commandNum == 1){
 			if(strcmp(command,"1") == 0){
-				ADC_HardwareTrigger_T0A(PERIOD_12kHZ);
+				ADC_HardwareTrigger_T0A(PERIOD_100Hz);
 				UART_OutString("\nHardware Sample Active\n");
 			}
 			else{

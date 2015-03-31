@@ -62,6 +62,7 @@ void Graph(void){
 				ADCtest = OS_Fifo_Get();
 				ST7735_PlotPoint(ADCtest);
 				ST7735_PlotNext();
+			OS_Sleep(10);
 			//}
 			//if(Graph_Type == VvF){
 				
@@ -73,9 +74,7 @@ int main(void){
 	OS_Init();
 	ST7735_PlotClear(0,4095);
 	//OS_AddThread(&dummyThread,128,3);		// runs continously
-	//OS_AddThread(&Interpreter,128,3);		// runs continously
-	//ADC_SoftwareTrigger();
-	ADC_HardwareTrigger_T0A(TIME_1MS/5);
+	OS_AddThread(&Interpreter,128,3);		// runs continously
 	OS_AddThread(&Graph,128,3);
 	OS_AddSW1Task(&SW1Push,3);					// print one frame to the LCD
 	OS_Launch(TIME_2MS);

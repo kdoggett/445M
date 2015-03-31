@@ -5,4 +5,4 @@ void Filter_Init(void);
  * Input: New ADC value
  * Output: Filter Output
 */
-int16_t Filter_Calc (int16_t);
+int32_t Filter_Calc (int16_t);

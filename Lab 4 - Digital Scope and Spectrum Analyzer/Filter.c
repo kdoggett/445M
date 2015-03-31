@@ -5,10 +5,10 @@
 
 int32_t Data[102]; 				// two copies of sample data
 int32_t *currentValue;		// Pointer to the current value
-const int32_t h[51]={4,-1,-8,-14,-16,-10,-1,6,5,-3,-13,
-     -15,-8,3,5,-5,-20,-25,-8,25,46,26,-49,-159,-257,
-     984,-257,-159,-49,26,46,25,-8,-25,-20,-5,5,3,-8,
-     -15,-13,-3,5,6,-1,-10,-16,-14,-8,-1,4};
+const long h[51]={2,-2,-1,1,3,-2,-1,0,4,-3,-1,
+     -1,5,-3,-1,-2,8,-4,-2,-5,13,-4,-3,-35,108,
+     365,108,-35,-3,-4,13,-5,-2,-4,8,-2,-1,-3,5,
+     -1,-1,-3,4,0,-1,-2,3,1,-1,-2,2};
 
 void Filter_Init(void) {
 	currentValue = &Data[0];
@@ -20,7 +20,7 @@ void Filter_Init(void) {
  * Output: filter output, ADC data
 */
 
-int16_t Filter_Calc (int16_t newdata) {
+int32_t Filter_Calc (int16_t newdata) {
 	int i;
 	int32_t sum; 
 	int32_t *copyCurrentValue;
@@ -40,5 +40,5 @@ int16_t Filter_Calc (int16_t newdata) {
 		copyCurrentValue++;
 		coefficients++;
 	}
-	return sum/16384;
+	return sum/512;
 }
