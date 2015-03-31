@@ -57,14 +57,6 @@ void SW1Push(void){
 
 char command[COMMAND_MAX];
 
-void dummyThread(void){
-	for(;;){
-		DIO1 ^= BIT1;
-		//OS_Sleep(2);
-	}
-	
-}
-
 void Interpreter(void){        
 	for(;;){
 		while(RxFifo_Size() == 0){DIO1 ^= BIT1;};
@@ -73,15 +65,18 @@ void Interpreter(void){
 	}
 }
 
+int32_t x[1024],y[1024]; 
+
 void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
-			//if(Graph_Type == VvT){
+			if(Graph_Type == VvT){
 				ADCtest = MACQ_Get();
 				ST7735_PlotPoint(ADCtest);
-			//}
-			//if(Graph_Type == VvF){
-				int32_t x[1024],y[1024];      // input and output arrays for FFT
+				ST7735_PlotNext();
+			}
+			if(Graph_Type == VvF){
+				//int32_t x[1024],y[1024];      // input and output arrays for FFT
 				for(int t = 0; t < 1024; t++){
 					int32_t data = MACQ_Get();
 					x[t] = data;
@@ -97,8 +92,8 @@ void Graph(void){
 						ST7735_PlotNext();
 					}
 				}
-			//}
-			ST7735_PlotNext();
+				ST7735_PlotNext();
+			}
 			OS_Sleep(10);
 		}
 }

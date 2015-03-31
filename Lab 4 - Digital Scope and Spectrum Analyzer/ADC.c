@@ -12,7 +12,6 @@
 volatile unsigned long ADC_Value;
 //******* Periodic Thread ****
 void ADC_Sample_Software(void){
-	DIO2 ^= BIT2;
 	int16_t filterOutput;
 	filterOutput = ADC_In();
 	filterOutput = Filter_Calc(filterOutput);
@@ -98,6 +97,7 @@ void ADC_HardwareTrigger_T0A(int period){
 
 void ADC0Seq3_Handler(void){
 	int16_t filterOutput;
+		DIO2 ^= BIT2;
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
 	filterOutput = ADC0_SSFIFO3_R;
 	filterOutput = Filter_Calc(filterOutput);

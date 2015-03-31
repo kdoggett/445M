@@ -7,12 +7,14 @@
 #include "pins.h"
 #include "OS.h"
 
-#define TIME_1MS    80000        
-#define PERIOD_100Hz	TIME_2MS*5
-#define TIME_2MS    (2*TIME_1MS)  
+graph Graph_Type = NONE;
+
+#define TIME_1MS				80000        
+#define PERIOD_100Hz		TIME_2MS*5
+#define TIME_2MS    		(2*TIME_1MS)  
 #define PERIOD_12kHZ		78*80
-#define TIME_500US  (TIME_1MS/2)  
-#define TIME_250US  (TIME_1MS/5) 
+#define TIME_500US  		(TIME_1MS/2)  
+#define TIME_250US  		(TIME_1MS/5) 
 
 #define	NO	0
 #define	YES	1
@@ -20,7 +22,7 @@
 void printCommands(void){
 	UART_OutString("\n\nCommands: \n");
 	UART_OutString("1. Trigger Type\n");
-	UART_OutString("2. Enable/Disable ADC\n");
+	UART_OutString("2. Graph Type\n");
 	UART_OutString("3. Print ADC input and FFT calculations\n");	
 }
 
@@ -42,6 +44,7 @@ void ProcessCommand(char *command){
 			}
 			if(strcmp(command,"2") == 0){
 				commandNum = 2;
+				UART_OutString("\nGraph Type: \n");
 				UART_OutString("1. Voltage v. time\n");
 				UART_OutString("2. Voltage v. frequency\n");		
 			}
@@ -67,6 +70,19 @@ void ProcessCommand(char *command){
 				ADC_SoftwareTrigger();
 				UART_OutString("\nSoftware Sample Active\n");
 			}
+		  processCommand = NO;
+			printCommands();
+		}
+		if(commandNum == 2){
+			if(strcmp(command,"1") == 0){
+				Graph_Type = VvT;
+				UART_OutString("\nGraph Type Voltage Versus Time\n");
+			}
+			else if(strcmp(command,"2") == 0){
+				Graph_Type = VvF;
+				UART_OutString("\nGraph Type Voltage Versus Frequency\n");
+			}
+			else Graph_Type = NONE;
 		  processCommand = NO;
 			printCommands();
 		}
