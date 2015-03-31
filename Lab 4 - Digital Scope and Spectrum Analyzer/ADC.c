@@ -7,6 +7,7 @@
 #include "ADC.h"
 #include "UART.h"
 #include "Filter.h"
+#include "MACQ.h"
 
 volatile unsigned long ADC_Value;
 //******* Periodic Thread ****
@@ -98,5 +99,5 @@ void ADC0Seq3_Handler(void){
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
 	filterOutput = ADC0_SSFIFO3_R;
 	filterOutput = Filter_Calc(filterOutput);
-	OS_Fifo_Put(filterOutput);
+	MACQ_Put(filterOutput);
 }

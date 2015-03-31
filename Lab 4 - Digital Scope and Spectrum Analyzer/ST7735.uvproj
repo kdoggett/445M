@@ -507,6 +507,11 @@
               <FileType>1</FileType>
               <FilePath>.\Filter.c</FilePath>
             </File>
+            <File>
+              <FileName>MACQ.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\MACQ.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

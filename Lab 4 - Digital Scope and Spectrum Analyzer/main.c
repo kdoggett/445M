@@ -8,6 +8,8 @@
 #include <string.h> 
 #include "interpreter.h"
 #include "ADC.h"
+#include "MACQ.h"
+
 #define PERIOD_12kHZ		78*80
 
 #define TIME_1MS    80000
@@ -20,7 +22,12 @@
 //******* Switch Press *******
 //spawns new foreground thread
 
+<<<<<<< HEAD
 uint32_t ADCtest;
+=======
+int buttonPress = 0;
+int32_t ADCtest;
+>>>>>>> 1c1990f348784d2f710a9c553a3d1b67ac98aee5
 unsigned int *data;
 
 void SW1_Work(void){ 
@@ -65,9 +72,15 @@ void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
 			//if(Graph_Type == VvT){
+<<<<<<< HEAD
 			ADCtest = OS_Fifo_Get();
 			ST7735_PlotPoint(ADCtest);
 			ST7735_PlotNext();
+=======
+				ADCtest = MACQ_Get();
+				ST7735_PlotPoint(ADCtest);
+				ST7735_PlotNext();
+>>>>>>> 1c1990f348784d2f710a9c553a3d1b67ac98aee5
 			OS_Sleep(10);
 			//}
 			//if(Graph_Type == VvF){
