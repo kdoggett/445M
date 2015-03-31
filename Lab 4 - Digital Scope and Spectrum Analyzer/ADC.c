@@ -12,6 +12,7 @@
 volatile unsigned long ADC_Value;
 //******* Periodic Thread ****
 void ADC_Sample_Software(void){
+	DIO2 ^= BIT2;
 	int16_t filterOutput;
 	filterOutput = ADC_In();
 	filterOutput = Filter_Calc(filterOutput);
@@ -24,6 +25,8 @@ unsigned long ADC_In(void){
   ADC0_PSSI_R = 0x0004;            // 1) initiate SS2
   while((ADC0_RIS_R&0x04)==0){};   // 2) wait for conversion done
   result = ADC0_SSFIFO2_R&0xFFF;   // 3) read result
+		ST7735_SetCursor(0,0);
+		printf("%d",result);
   ADC0_ISC_R = 0x0004;             // 4) acknowledge completion
 	return result;
 }
@@ -94,7 +97,6 @@ void ADC_HardwareTrigger_T0A(int period){
 }
 
 void ADC0Seq3_Handler(void){
-	DIO2 ^= BIT2;
 	int16_t filterOutput;
   ADC0_ISC_R = 0x08;          // acknowledge ADC sequence 3 completion
 	filterOutput = ADC0_SSFIFO3_R;

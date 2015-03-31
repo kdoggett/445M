@@ -26,15 +26,21 @@ int buttonPress = 0;
 int32_t ADCtest;
 unsigned int *data;
 
+int switchADC[64] = {0};
+
 void SW1_Work(void){ 
-	
-	//ST7735_PlotClear(0,4095);
+	Output_Clear();
 	int i = 0;
 	for (i = 0;i < 64;i++){
-		ADCtest = OS_Fifo_Get();
-		ST7735_PlotPoint(ADCtest);
+		switchADC[i] = MACQ_Get();
+	}
+	DisableInterrupts();
+	ST7735_DrawString(0,0,"Amazing Scope",ST7735_RED);
+	ST7735_DrawString(0,1,"Button Sample",ST7735_RED);
+	ST7735_DrawString(0,2,"Sample Count: 64",ST7735_RED);
+	for(i = 0;i < 64;i++){
+		ST7735_PlotPoint(switchADC[i]);
 		ST7735_PlotNext();
-		OS_Sleep(50);
 	}
 	EnableInterrupts();
 	OS_Kill();

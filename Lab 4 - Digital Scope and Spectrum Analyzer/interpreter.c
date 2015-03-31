@@ -42,8 +42,8 @@ void ProcessCommand(char *command){
 			}
 			if(strcmp(command,"2") == 0){
 				commandNum = 2;
-				UART_OutString("1. Disable ADC\n");
-				UART_OutString("2. Enable ADC\n");		
+				UART_OutString("1. Voltage v. time\n");
+				UART_OutString("2. Voltage v. frequency\n");		
 			}
 			if(strcmp(command,"3") == 0){
 				commandNum = 3;
@@ -53,12 +53,14 @@ void ProcessCommand(char *command){
 	else if(processCommand == YES){
 		if(commandNum == 1){
 			if(strcmp(command,"1") == 0){
+				Output_Clear();
 				ST7735_DrawString(0,0,"Amazing Scope",ST7735_RED);
 				ST7735_DrawString(0,1,"Hardware Trigger",ST7735_RED);
 				ST7735_DrawString(0,2,"Sample Rate: 100 Hz",ST7735_RED);
 				ADC_HardwareTrigger_T0A(TIME_2MS*10);
 			}
 			else{
+				Output_Clear();
 				ST7735_DrawString(0,0,"Amazing Scope",ST7735_RED);
 				ST7735_DrawString(0,1,"Software Trigger",ST7735_RED);
 				ST7735_DrawString(0,2,"Sample Rate: 100 Hz",ST7735_RED);
