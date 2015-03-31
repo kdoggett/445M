@@ -9,6 +9,7 @@
 #include "interpreter.h"
 #include "ADC.h"
 #include "MACQ.h"
+#include "sqrt.h"
 
 #define PERIOD_12kHZ		78*80
 
@@ -18,6 +19,8 @@
 #define TIME_2MS    (2*TIME_1MS) 
 #define TIME_500US  (TIME_1MS/2)  
 #define TIME_250US  (TIME_1MS/5)
+
+void cr4_fft_1024_stm32(void *pssOUT, void *pssIN, unsigned short Nbin);
 
 //******* Switch Press *******
 //spawns new foreground thread
@@ -74,14 +77,29 @@ void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
 			//if(Graph_Type == VvT){
-			ADCtest = MACQ_Get();
-			ST7735_PlotPoint(ADCtest);
-			ST7735_PlotNext();
-			OS_Sleep(10);
+				ADCtest = MACQ_Get();
+				ST7735_PlotPoint(ADCtest);
 			//}
 			//if(Graph_Type == VvF){
-			
+				int32_t x[1024],y[1024];      // input and output arrays for FFT
+				for(int t = 0; t < 1024; t++){
+					int32_t data = MACQ_Get();
+					x[t] = data;
+				}
+				cr4_fft_1024_stm32(y,x,1024);
+				int32_t real,imag,data;
+				for(int t = 0; t < 512; t++){
+					real = y[t] & 0xFFFF;
+					imag = y[t] >> 16;
+					data = sqrt(real*real + imag*imag);
+					ST7735_PlotdBfs(data);
+					if((t%4) == 3){
+						ST7735_PlotNext();
+					}
+				}
 			//}
+			ST7735_PlotNext();
+			OS_Sleep(10);
 		}
 }
 

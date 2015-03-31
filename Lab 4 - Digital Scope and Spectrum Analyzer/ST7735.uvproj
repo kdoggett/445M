@@ -512,6 +512,16 @@
               <FileType>1</FileType>
               <FilePath>.\MACQ.c</FilePath>
             </File>
+            <File>
+              <FileName>cr4_fft_1024_stm32.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\cr4_fft_1024_stm32.s</FilePath>
+            </File>
+            <File>
+              <FileName>sqrt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\sqrt.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
