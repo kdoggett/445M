@@ -15,7 +15,7 @@
 #define TIME_1S			80000000
 #define TIME_2MS    (2*TIME_1MS) 
 #define TIME_500US  (TIME_1MS/2)  
-#define TIME_250US  (TIME_1MS/5) 
+#define TIME_250US  (TIME_1MS/5)
 
 //******* Switch Press *******
 //spawns new foreground thread
@@ -58,10 +58,14 @@ void Interpreter(void){
 void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
-			ADCtest = OS_Fifo_Get();
-			ST7735_PlotPoint(ADCtest);
-			ST7735_PlotNext();
-			//OS_Sleep(1);
+			//if(Graph_Type == VvT){
+				ADCtest = OS_Fifo_Get();
+				ST7735_PlotPoint(ADCtest);
+				ST7735_PlotNext();
+			//}
+			//if(Graph_Type == VvF){
+				
+			//}
 		}
 }
 
