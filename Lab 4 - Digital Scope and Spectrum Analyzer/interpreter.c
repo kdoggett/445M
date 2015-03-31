@@ -5,6 +5,7 @@
 #include "UART.h"
 #include "ADC.h"
 #include "pins.h"
+#include "OS.h"
 
 #define TIME_1MS    80000        
 #define PERIOD_100Hz	TIME_2MS*5
@@ -52,16 +53,12 @@ void ProcessCommand(char *command){
 	else if(processCommand == YES){
 		if(commandNum == 1){
 			if(strcmp(command,"1") == 0){
-				Output_Clear();
-				ADC0_IM_R &= ~0x08;
 				ST7735_DrawString(0,0,"Amazing Scope",ST7735_RED);
 				ST7735_DrawString(0,1,"Hardware Trigger",ST7735_RED);
 				ST7735_DrawString(0,2,"Sample Rate: 100 Hz",ST7735_RED);
 				ADC_HardwareTrigger_T0A(TIME_2MS*10);
 			}
 			else{
-				TIMER2_CTL_R &= ~TIMER_CTL_TAEN;
-				Output_Clear();
 				ST7735_DrawString(0,0,"Amazing Scope",ST7735_RED);
 				ST7735_DrawString(0,1,"Software Trigger",ST7735_RED);
 				ST7735_DrawString(0,2,"Sample Rate: 100 Hz",ST7735_RED);

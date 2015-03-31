@@ -22,17 +22,13 @@
 //******* Switch Press *******
 //spawns new foreground thread
 
-<<<<<<< HEAD
-uint32_t ADCtest;
-=======
 int buttonPress = 0;
 int32_t ADCtest;
->>>>>>> 1c1990f348784d2f710a9c553a3d1b67ac98aee5
 unsigned int *data;
 
 void SW1_Work(void){ 
-	DisableInterrupts();
-	ST7735_PlotClear(0,4095);
+	
+	//ST7735_PlotClear(0,4095);
 	int i = 0;
 	for (i = 0;i < 64;i++){
 		ADCtest = OS_Fifo_Get();
@@ -72,15 +68,9 @@ void Graph(void){
 		for(;;){
 			DIO3 ^= BIT3;
 			//if(Graph_Type == VvT){
-<<<<<<< HEAD
-			ADCtest = OS_Fifo_Get();
+			ADCtest = MACQ_Get();
 			ST7735_PlotPoint(ADCtest);
 			ST7735_PlotNext();
-=======
-				ADCtest = MACQ_Get();
-				ST7735_PlotPoint(ADCtest);
-				ST7735_PlotNext();
->>>>>>> 1c1990f348784d2f710a9c553a3d1b67ac98aee5
 			OS_Sleep(10);
 			//}
 			//if(Graph_Type == VvF){

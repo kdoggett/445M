@@ -9,7 +9,7 @@ void MACQ_Init (void);
 /**** MACQ_PUT ******
 * MUCH LIKE FIFO PUT BUT WRAPS AROUND *
 */
-void MACQ_Put (int32_t MACQ_DATA);
+void MACQ_Put (int32_t);
 
 
 /**** MACQ_GET ******

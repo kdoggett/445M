@@ -5,7 +5,7 @@
  * Output: 
 */
 
-#define MACQSIZE 100
+#define MACQSIZE 10
 
 
 int32_t MACQBuffer[MACQSIZE];

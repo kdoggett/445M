@@ -7,6 +7,7 @@
 #include "ST7735.h"
 #include "UART.h"
 #include "Filter.h"
+#include "MACQ.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -149,6 +150,7 @@ void OS_Init(void){
 	ConsoleInit();							// Console information message
 	Filter_Init();							// User to initialize MACQ
 	OS_Fifo_Init(FIFO_SIZE); 		// Used for passing data between ADC and display
+	MACQ_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6 - SysTick
