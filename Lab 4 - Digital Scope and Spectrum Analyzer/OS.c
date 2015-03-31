@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "ST7735.h"
 #include "UART.h"
+#include "Filter.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -146,6 +147,7 @@ void OS_Init(void){
 	ST7735_InitR(INITR_REDTAB);	// initilize LCD
 	UART_Init();								// interrupt driven UART from Valvano
 	ConsoleInit();							// Console information message
+	Filter_Init();							// User to initialize MACQ
 	OS_Fifo_Init(FIFO_SIZE); 		// Used for passing data between ADC and display
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it

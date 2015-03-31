@@ -502,6 +502,11 @@
               <FileType>1</FileType>
               <FilePath>.\interpreter.c</FilePath>
             </File>
+            <File>
+              <FileName>Filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Filter.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
