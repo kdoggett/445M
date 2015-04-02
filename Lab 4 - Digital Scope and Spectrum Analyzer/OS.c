@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include "ST7735.h"
 #include "UART.h"
+#include "Filter.h"
+#include "MACQ.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -13,7 +15,7 @@
 #define STACKSIZE   128      // number of 32-bit words in stack
 #define SUCCESS			1
 #define FAIL				0
-#define	FIFO_SIZE		1000
+#define	FIFO_SIZE		2000
 
 struct tcb{
   int			 			*sp;      			// pointer to stack (valid for threads not running
@@ -146,7 +148,9 @@ void OS_Init(void){
 	ST7735_InitR(INITR_REDTAB);	// initilize LCD
 	UART_Init();								// interrupt driven UART from Valvano
 	ConsoleInit();							// Console information message
+	Filter_Init();							// User to initialize MACQ
 	OS_Fifo_Init(FIFO_SIZE); 		// Used for passing data between ADC and display
+	MACQ_Init();
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
   NVIC_SYS_PRI3_R =(NVIC_SYS_PRI3_R&0x00FFFFFF)|0x60000000; // priority 6 - SysTick
@@ -258,7 +262,10 @@ int OS_MsTime(void){
 	return 21;
 }
 
-/*********** FIFO ***********/
+/*********** 
+***********/
+int getCount = 0;
+int putCount = 0;
 
 unsigned long volatile *PutPt;
 unsigned long volatile *GetPt;
@@ -269,6 +276,7 @@ void OS_Fifo_Init(unsigned long size){
 }
 
 unsigned long OS_Fifo_Get(void){
+	getCount++;
 	unsigned long volatile *nextGetPt;
 	unsigned long volatile *storeGetPt;
 	storeGetPt = GetPt;
@@ -284,6 +292,7 @@ unsigned long OS_Fifo_Get(void){
 }
 
 int OS_Fifo_Put(unsigned long data){
+	putCount++;
 	unsigned long volatile *nextPutPt;
 	nextPutPt = PutPt + 1;
 	if(nextPutPt == GetPt){
