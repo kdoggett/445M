@@ -7,6 +7,7 @@
 #include "UART.h"
 #include <string.h> 
 #include "interpreter.h"
+#include "ST7735.h"
 
 #define TIME_1MS    80000          
 #define TIME_2MS    (2*TIME_1MS) 
@@ -28,7 +29,7 @@ void SW1Push(void){
 
 void robot(void){
 		for(;;){
-			DIO3 ^= BIT3;
+			ST7735_OutUDec(1);
 		}
 }
 
@@ -38,7 +39,7 @@ char command[COMMAND_MAX];
 
 void interpreter(void){        
 	for(;;){
-		while(RxFifo_Size() == 0){DIO1 ^= BIT1;};
+		while(RxFifo_Size() == 0){};
 			UART_InString(command,COMMAND_MAX);
 			ProcessCommand(command);
 	}

@@ -5,6 +5,7 @@
 #include "timers.h"
 #include <stdint.h>
 #include "UART.h"
+#include "ST7735.h"
 
 /*--------- TCB Stucture ---------*/
 
@@ -139,6 +140,7 @@ void OS_Init(void){
 	Timer3_Init();							// interrupt triggered, user thread
 	UART_Init();								// interrupt driven UART from Valvano
 	ConsoleInit();							// Console information message
+	ST7735_InitR(INITR_REDTAB);	// initilize LCD
 	OS_Fifo_Init(FIFO_SIZE); 		// Used for passing data between ADC and display
   NVIC_ST_CTRL_R = 0;         // disable SysTick during setup
   NVIC_ST_CURRENT_R = 0;      // any write to current clears it
