@@ -40,42 +40,6 @@
  http://users.ece.utexas.edu/~valvano/
  */
 
-/* Sain Smart Connections (ST7735)
-
-		Name	Pin	Board						Wire Color
-		VCC		1		+3.3V						
-		GND		2		GND							
-		SCL		3		PA2 (SSI0Clk)		blue
-		SDA		4		PA5 (SSI0Tx)		purple
-		RS/DC	5		PA6 (GPIO)			grey
-		RES		6		PA7 (GPIO)			white
-		CS		7		PA3 (SSI0Fss)		black
-		
-		Pins below are for the SD-Card:
-		MSO		8		nc
-		SCLK	9		nc
-		MOSI	10	nc
-		CS		11	nc
-		
-		http://www.sainsmart.com/zen/documents/20-011-920/Manual.pdf
-*/
-
-/* Ada Fruit Connections (ST7735)
-
-		Name				Pin		Board						Wire Color
-		Backlight			10	+3.3V						
-		MISO					9 	nc
-		SCK						8		PA2 (SSI0Clk)		blue
-		MOSI					7		PA5 (SSI0Tx)		purple
-		TFT_CS				6		PA3 (SSI0Fss)		black
-		CARD_CS				5		nc
-		Data/Command	4		PA6 (GPIO)			grey
-		RESET					3		PA7 (GPIO)			white
-		VCC						2		+3.3V					
-		Gnd						1		GND
-
-*/
-
 #include <stdio.h>
 #include <stdint.h>
 #include "ST7735.h"

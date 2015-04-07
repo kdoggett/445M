@@ -62,16 +62,16 @@
 /* Ada Fruit Connections (ST7735)
 
 		Name				Pin		Board						Wire Color
-		Backlight			10	+3.3V						
-		MISO					9 	nc
-		SCK						8		PA2 (SSI0Clk)		blue
-		MOSI					7		PA5 (SSI0Tx)		purple
-		TFT_CS				6		PA3 (SSI0Fss)		black
-		CARD_CS				5		nc
-		Data/Command	4		PA6 (GPIO)			grey
+		Backlight			10	+3.3V						rail
+		MISO					9 	PA4							gray
+		SCK						8		PA2 (SSI0Clk)		purple
+		MOSI					7		PA5 (SSI0Tx)		blue
+		TFT_CS				6		PA3 (SSI0Fss)		green
+		CARD_CS				5		PD7							yellow
+		Data/Command	4		PA6 (GPIO)			orange
 		RESET					3		PA7 (GPIO)			white
-		VCC						2		+3.3V					
-		Gnd						1		GND
+		VCC						2		+3.3V						rail
+		Gnd						1		GND							rail
 
 */
 
