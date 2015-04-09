@@ -488,14 +488,24 @@
               <FilePath>.\interpreter.c</FilePath>
             </File>
             <File>
-              <FileName>ST7735.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\ST7735.c</FilePath>
-            </File>
-            <File>
               <FileName>edisk.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\edisk.c</FilePath>
+            </File>
+            <File>
+              <FileName>Lab5.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Lab5.c</FilePath>
+            </File>
+            <File>
+              <FileName>input.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\input.c</FilePath>
+            </File>
+            <File>
+              <FileName>eFile.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\eFile.c</FilePath>
             </File>
           </Files>
         </Group>
