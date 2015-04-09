@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>Lab5</TargetName>
+      <TargetName>ST7735</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -45,7 +45,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\</OutputDirectory>
-          <OutputName>Lab5</OutputName>
+          <OutputName>ST7735</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -416,11 +416,6 @@
               <FilePath>.\timers.c</FilePath>
             </File>
             <File>
-              <FileName>debug.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\debug.c</FilePath>
-            </File>
-            <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\PLL.c</FilePath>
@@ -473,6 +468,16 @@
               <FilePath>.\startup.s</FilePath>
             </File>
             <File>
+              <FileName>input.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\input.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ADC.c</FilePath>
+            </File>
+            <File>
               <FileName>UART.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\UART.c</FilePath>
@@ -488,19 +493,19 @@
               <FilePath>.\edisk.c</FilePath>
             </File>
             <File>
-              <FileName>Lab5.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Lab5.c</FilePath>
-            </File>
-            <File>
-              <FileName>input.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\input.c</FilePath>
-            </File>
-            <File>
               <FileName>eFile.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\eFile.c</FilePath>
+            </File>
+            <File>
+              <FileName>debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\debug.c</FilePath>
+            </File>
+            <File>
+              <FileName>Lab5.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Lab5.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -6,8 +6,7 @@
 //*****************************************************************************
 // PF1/IDX1 is user input select switch
 // PE1/PWM5 is user input down switch 
-#include <stdio.h>
-#include <string.h>
+
 #include "OS.h"
 #include "pins.h"
 #include "tm4c123gh6pm.h"
@@ -16,6 +15,8 @@
 #include "ADC.h"
 #include "edisk.h"
 #include "efile.h"
+#include <stdio.h>
+#include <string.h>
 
 
 unsigned long NumCreated;   // number of foreground threads created
@@ -173,40 +174,47 @@ unsigned char buffer[512];
 void diskError(char* errtype, unsigned long n){
   printf(errtype);
   printf(" disk error %u",n);
-  OS_Kill();
+  while(1){}
+	//OS_Kill();
 }
 void TestDisk(void){  DSTATUS result;  unsigned short block;  int i; unsigned long n;
   // simple test of eDisk
-  printf("\n\rEE345M/EE380L, Lab 5 eDisk test\n\r");
+  //printf("\n\rEE345M/EE380L, Lab 5 eDisk test\n\r");
   result = eDisk_Init(0);  // initialize disk
-  if(result) diskError("eDisk_Init",result);
-  printf("Writing blocks\n\r");
+  //if(result) diskError("eDisk_Init",result);
+  //printf("Writing blocks\n\r");
   n = 1;    // seed
   for(block = 0; block < MAXBLOCKS; block++){
     for(i=0;i<512;i++){
       n = (16807*n)%2147483647; // pseudo random sequence
       buffer[i] = 0xFF&n;        
     }
-    GPIO_PF3 = 0x08;     // PF3 high for 100 block writes
-    if(eDisk_WriteBlock(buffer,block))diskError("eDisk_WriteBlock",block); // save to disk
-    GPIO_PF3 = 0x00;     
+    //GPIO_PF3 = 0x08;     // PF3 high for 100 block writes
+    if(eDisk_WriteBlock(buffer,block)){
+			//diskError("eDisk_WriteBlock",block); // save to disk
+		}
+    //GPIO_PF3 = 0x00;     
   }  
-  printf("Reading blocks\n\r");
+  //printf("Reading blocks\n\r");
   n = 1;  // reseed, start over to get the same sequence
   for(block = 0; block < MAXBLOCKS; block++){
-    GPIO_PF2 = 0x04;     // PF2 high for one block read
-    if(eDisk_ReadBlock(buffer,block))diskError("eDisk_ReadBlock",block); // read from disk
-    GPIO_PF2 = 0x00;
+    //GPIO_PF2 = 0x04;     // PF2 high for one block read
+    if(eDisk_ReadBlock(buffer,block)){
+			//diskError("eDisk_ReadBlock",block); // read from disk
+		}
+    //GPIO_PF2 = 0x00;
     for(i=0;i<512;i++){
       n = (16807*n)%2147483647; // pseudo random sequence
       if(buffer[i] != (0xFF&n)){
-        printf("Read data not correct, block=%u, i=%u, expected %u, read %u\n\r",block,i,(0xFF&n),buffer[i]);
-        OS_Kill();
+        //printf("Read data not correct, block=%u, i=%u, expected %u, read %u\n\r",block,i,(0xFF&n),buffer[i]);
+  while(1){}
+	//OS_Kill();
       }      
     }
   }  
-  printf("Successful test of %u blocks\n\r",MAXBLOCKS);
-  OS_Kill();
+  //printf("Successful test of %u blocks\n\r",MAXBLOCKS);
+  while(1){}
+	//OS_Kill();
 }
 void RunTest(void){
   NumCreated += OS_AddThread(&TestDisk,128,1);  
@@ -219,7 +227,7 @@ int main(void){   // testmain1
 
 //*******attach background tasks***********
   OS_AddPeriodicThread(&disk_timerproc,10*TIME_1MS,0,2);   // time out routines for disk
-  OS_AddSW1Task(&RunTest,2);
+  //OS_AddSW1Task(&RunTest,2);
   
   NumCreated = 0 ;
 // create initial foreground threads
