@@ -2,6 +2,7 @@
 #include "interpreter.h"
 #include "UART.h"
 #include "pins.h"
+#include "efile.h"
 
 #define TIME_1MS    80000          
 #define TIME_2MS    (2*TIME_1MS)  
@@ -14,9 +15,10 @@
 
 void printCommands(void){
 	UART_OutString("\n\nCommands: \n");
-	UART_OutString("1. Trigger Type\n");
-	UART_OutString("2. Enable/Disable ADC\n");
-	UART_OutString("3. Print ADC input and FFT calculations\n");	
+	UART_OutString("1. Format\n");
+	UART_OutString("2. Directory\n");
+	UART_OutString("3. Print File\n");
+	UART_OutString("4. Delete File\n");	
 }
 
 void printADC_FFT(void){
@@ -31,18 +33,19 @@ void ProcessCommand(char *command){
 		processCommand = YES;
 			if(strcmp(command,"1") == 0){
 				commandNum = 1;
-				UART_OutString("\n\nChoose trigger type: \n");
-				UART_OutString("1. Hardware sample\n");
-				UART_OutString("2. Software sample\n");
+				eFile_Format();
 			}
 			if(strcmp(command,"2") == 0){
 				commandNum = 2;
-				UART_OutString("1. Disable ADC\n");
-				UART_OutString("2. Enable ADC\n");		
+				//eFile_Directory(
 			}
 			if(strcmp(command,"3") == 0){
 				commandNum = 3;
-				printADC_FFT();
+				//print file
+			}
+			if(strcmp(command,"4") == 0){
+				commandNum = 4;
+				//delete file
 			}
 	}
 	else if(processCommand == YES){
