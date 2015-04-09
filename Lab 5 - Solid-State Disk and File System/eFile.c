@@ -37,7 +37,7 @@ typedef struct Layout{
 }Layout;
 
 Layout FILESYSTEM;
-char CurrentOpenBlock[BLOCKSIZE];
+unsigned char CurrentOpenBlock[BLOCKSIZE];
 unsigned char OpenBlock;
 char CurrentBlockPosition;
 char FileSystemFlag = 1;
@@ -61,7 +61,7 @@ void AddEmptyIndex(unsigned char Empty_Index){
 	CurrentBlock.NEXT_FILE_INDEX = 0;	
 }
 
-char* FileToBlock (BLOCK File, char FileBuffer[]){
+unsigned char* FileToBlock (BLOCK File, unsigned char FileBuffer[]){
 	uint32_t INDEX = 0;
 	while(INDEX < BLOCKSIZE - 1){
 		FileBuffer[INDEX] = File.DATA[INDEX];
@@ -69,7 +69,7 @@ char* FileToBlock (BLOCK File, char FileBuffer[]){
 	return FileBuffer;
 }
 
-void BlockToFile(BLOCK File, char FileBuffer[]){
+void BlockToFile(BLOCK File, unsigned char FileBuffer[]){
 	uint32_t INDEX = 0;
 	while(INDEX < BLOCKSIZE - 1){
 		File.DATA[INDEX] = FileBuffer[INDEX];
@@ -77,7 +77,7 @@ void BlockToFile(BLOCK File, char FileBuffer[]){
 	File.NEXT_FILE_INDEX = FileBuffer[BLOCKSIZE -1];
 }
 
-char* DirectoryToBlock(char DirectoryBuffer[]){
+unsigned char* DirectoryToBlock(unsigned char DirectoryBuffer[]){
 	uint32_t INDEX = 0;
 	for(int i = 0; i < DRCTYSIZE; i++){
 		for(int j = 0; j < 7; j++,INDEX++){
@@ -182,7 +182,7 @@ int eFile_Create(char name[]){  // create new file, make it empty
 int eFile_WOpen(char name[]){
 	if(FileSystemFlag == 1){
 		for(int i = 0; i < DRCTYSIZE; i++){
-			if(!strcmp(FILESYSTEM.Directory[0].FILE[i].FILE_NAME,name)){
+			if(strcmp(FILESYSTEM.Directory[0].FILE[i].FILE_NAME,name ) == 0){
 				OpenBlock = FILESYSTEM.Directory[0].FILE[i].FILE_INDEX;
 			}
 		}
