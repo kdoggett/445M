@@ -77,29 +77,23 @@ void BlockToFile(BLOCK File, unsigned char FileBuffer[]){
 	File.NEXT_FILE_INDEX = FileBuffer[BLOCKSIZE -1];
 }
 
-unsigned char* DirectoryToBlock(unsigned char DirectoryBuffer[]){
-	uint32_t INDEX = 0;
-	for(int i = 0; i < DRCTYSIZE; i++){
-		for(int j = 0; j < 7; j++,INDEX++){
-			DirectoryBuffer[INDEX] = FILESYSTEM.Directory[0].FILE[i].FILE_NAME[j];
-		}
-		DirectoryBuffer[INDEX] = FILESYSTEM.Directory[0].FILE[i].FILE_INDEX;
-		INDEX++;
-	}
-	return DirectoryBuffer;
-}
-
 void AddFileToDirectory(char* File_Name, unsigned char Block_Index){
-	int counter;
-	for(counter = 0; counter < DRCTYSIZE; counter++){
-		if(FILESYSTEM.Directory[0].FILE[counter].FILE_INDEX != 0){}
-		else{
-			for(int i = 0; File_Name[i] != 0; i++){
-				FILESYSTEM.Directory[0].FILE[counter].FILE_NAME[i] = File_Name[i];
-			}
-			FILESYSTEM.Directory[0].FILE[counter].FILE_INDEX = Block_Index;
+	OpenBlock = 0;
+	eDisk_ReadBlock(CurrentOpenBlock, OpenBlock);
+	uint16_t index = 0;
+	while(CurrentBlockPosition[OpenBlock] < BLOCKSIZE - 1){
+		while(File_Name[index] != 0){
+			CurrentOpenBlock[CurrentBlockPosition[OpenBlock]] = File_Name[index];
+			index++;
+			CurrentBlockPosition[OpenBlock]++;
 		}
+		CurrentBlockPosition[OpenBlock] = Block_Index;
 	}
+	eDisk_WriteBlock(CurrentOpenBlock, OpenBlock);
+	for(index = 0; File_Name[index] != 0; index++){
+		FILESYSTEM.Directory[0].FILE[0].FILE_NAME[index] = File_Name[index];
+	}
+	FILESYSTEM.Directory[0].FILE[0].FILE_INDEX = Block_Index;
 }
 
 //---------- eFile_Init-----------------
@@ -146,7 +140,6 @@ int eFile_Format(void) { // erase disk, add format
 		}
 		FILESYSTEM.Directory[0].FILE[FILE].FILE_INDEX = 0;
 	}
-	EmptyBuffer = DirectoryToBlock(EmptyBuffer);
 	if(eDisk_WriteBlock(EmptyBuffer, 0)){
 		return FAIL;
 	}
@@ -160,18 +153,16 @@ int eFile_Format(void) { // erase disk, add format
 int eFile_Create(char name[]){  // create new file, make it empty
 	if(FileSystemFlag == 1){
 		unsigned char EmptyBlockNumber = FILESYSTEM.Directory[0].FIRSTEMPTYFILE;
-		BLOCK NewBlock = FILESYSTEM.FILES[EmptyBlockNumber];
-		FILESYSTEM.Directory[0].FIRSTEMPTYFILE = NewBlock.NEXT_FILE_INDEX;
-		NewBlock.NEXT_FILE_INDEX = 0;
 		CurrentBlockPosition[EmptyBlockNumber] = 0;
-		while(name[CurrentBlockPosition[EmptyBlockNumber]] != 0){
-			NewBlock.DATA[CurrentBlockPosition[EmptyBlockNumber]] = name[CurrentBlockPosition[EmptyBlockNumber]];
-			CurrentBlockPosition[EmptyBlockNumber]++;
+		OpenBlock = EmptyBlockNumber;
+		eDisk_ReadBlock(CurrentOpenBlock, OpenBlock);
+		while(name[CurrentBlockPosition[OpenBlock]] != 0){
+			CurrentOpenBlock[CurrentBlockPosition[OpenBlock]] = name[CurrentBlockPosition[OpenBlock]];
+			CurrentBlockPosition[OpenBlock]++;
 		}
-		unsigned char *EmptyBuffer = CreateEmptyBuffer(EmptyBuffer, BLOCKSIZE);
-		EmptyBuffer = FileToBlock(NewBlock, EmptyBuffer);
-		eDisk_WriteBlock(EmptyBuffer, EmptyBlockNumber);
-		AddFileToDirectory(name, EmptyBlockNumber);
+		eDisk_WriteBlock(CurrentOpenBlock, OpenBlock);
+		BlockToFile(FILESYSTEM.FILES[OpenBlock], CurrentOpenBlock);
+		AddFileToDirectory(name, OpenBlock);
 		return SUCCESS;
 	}
 	return FAIL;
@@ -230,7 +221,6 @@ int eFile_ROpen( char name[]){
 			if(strcmp(FILESYSTEM.Directory[0].FILE[i].FILE_NAME, name) == 0){
 				OpenBlock = FILESYSTEM.Directory[0].FILE[i].FILE_INDEX;
 				eDisk_ReadBlock(CurrentOpenBlock, OpenBlock);
-				BlockToFile(FILESYSTEM.FILES[OpenBlock], CurrentOpenBlock);
 				return 0;
 			}
 		}
@@ -242,8 +232,6 @@ int eFile_ROpen( char name[]){
 int eFile_ReadNext( char *pt){
 	if(FileSystemFlag == 1){
 		return CurrentOpenBlock[CurrentBlockPosition[OpenBlock] + 1];
-	} else {
-		return 1;
 	}
 }
                               
@@ -281,7 +269,6 @@ int eFile_Delete( char name[]){
 			}
 			FILESYSTEM.Directory[0].FILE[i].FILE_INDEX = 0;
 			unsigned char *EmptyBuffer = CreateEmptyBuffer(EmptyBuffer, BLOCKSIZE);
-			EmptyBuffer = DirectoryToBlock(EmptyBuffer);
 			eDisk_WriteBlock(EmptyBuffer, 0);
 			return 0;
 		}
